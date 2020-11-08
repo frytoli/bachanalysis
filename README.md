@@ -10,7 +10,7 @@ Compare the physical features and place (the number of episodes the contestant w
 
 ### Collection
 
-## Data source numbers:
+#### Data source numbers:
 
 1. General info of all Bachelor seasons
 2. General info of all Bachelorette seasons
@@ -18,13 +18,13 @@ Compare the physical features and place (the number of episodes the contestant w
 4. General info and place of all Bachelorette contestants
 5. Photos and additional physical info of all Bachelor/Bachelorette cast members
 
-## Arguments:
+#### Arguments:
 
 * scraper: Required. An integer associated with the desired scraper to be executed. This can be a list of integers.
 * season: Optional. Default: None. An integer associated with a desired season to collect data on. Only applicable with data sources 3 and 4.
 * contestant: Optional. Default: None. A case insensitive string of the first and last name separated by a "_" or "-" of a contestant from any season of The Bachelor or Bachelorette. Only applicable with data source 5.
 
-## Examples:
+#### Examples:
 
 Collect all available data from all sources:
 ```
