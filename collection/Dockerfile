@@ -19,10 +19,21 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN python -m pip install --upgrade pip
 
 # Install python packages
-RUN pip install requests \
-	pandas \
-	lxml \
-	bs4
+RUN pip install --no-dependencies \
+	beautifulsoup4==4.9.3 \
+	bs4==0.0.1 \
+	certifi==2020.11.8 \
+	chardet==3.0.4 \
+	idna==2.10 \
+	lxml==4.6.1 \
+	numpy==1.19.4 \
+	pandas==1.1.4 \
+	python-dateutil==2.8.1 \
+	pytz==2020.4 \
+	requests==2.24.0 \
+	six==1.15.0 \
+	soupsieve==2.0.1 \
+	urllib3==1.25.11
 
 # Set workdir
 WORKDIR /home/
