@@ -33,8 +33,6 @@ def scrape():
     table = soup.find('table', class_='wikitable plainrowheaders')
     # Convert html table to dataframe
     df = pd.read_html(str(table), header=0)[0]
-    # Export dataframe as json
+    # Convert dataframe to dict
     data = [record for record in df.to_dict(orient='records')]
-    # Write to file
-    with open('../data/ds1.json','w') as outjson:
-        json.dump(data, outjson, indent=2)
+    return data
