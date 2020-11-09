@@ -122,15 +122,17 @@ def main():
             # Read-in json files of all previously collected contestants
             contestants = []
             # Bachelor contestants
-            for season in range(1, MAX_BACHELOR_SEASON+1): # Hardcoded max episodes
-                if os.path.exists(f'../data/bachelor{season}.json'):
-                    df = pd.read_json(f'../data/bachelor{season}.json')
-                    contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+            if os.path.exists(os.path.join(path_to_volume, 'd3.json')):
+                df = pd.read_json(os.path.join(path_to_volume, 'd3.json'))
+                contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+            else:
+                print('No source for Bachelor contestants. Please run collection on data source 3. Skipping.')
             # Bachelorette contestants
-            for season in range(1, MAX_BACHELORETTE_SEASON+1): # Hardcoded max episodes
-                if os.path.exists(f'../data/bachelorette{season}.json'):
-                    df = pd.read_json(f'../data/bachelorette{season}.json')
-                    contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+            if os.path.exists(os.path.join(path_to_volume, 'd4.json')):
+                df = pd.read_json(os.path.join(path_to_volume, 'd4.json'))
+                contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+            else:
+                print('No source for Bachelorette contestants. Please run collection on data source 4. Skipping.')
         else:
             contestants = args.contestant
         ds5_data = pool.apply_async(scrape5, contestants, kwds={'to_db':to_db for c in contestants})
