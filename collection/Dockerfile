@@ -24,6 +24,7 @@ RUN pip install --no-dependencies \
 	bs4==0.0.1 \
 	certifi==2020.11.8 \
 	chardet==3.0.4 \
+	html5lib==1.1 \
 	idna==2.10 \
 	lxml==4.6.1 \
 	numpy==1.19.4 \
@@ -33,7 +34,8 @@ RUN pip install --no-dependencies \
 	requests==2.24.0 \
 	six==1.15.0 \
 	soupsieve==2.0.1 \
-	urllib3==1.25.11
+	urllib3==1.25.11 \
+	webencodings==0.5.1
 
 # Set workdir
 WORKDIR /home/
