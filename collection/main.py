@@ -74,7 +74,7 @@ def main():
 
     # Specify output format
     to_db = True
-    if args.output == 'file':
+    if args.output.lower() == 'file':
         to_db = False
         path_to_volume = os.path.join(os.getcwd(), 'data')
 
