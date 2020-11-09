@@ -4,7 +4,9 @@ from multiprocessing import Pool
 from scrapers import *
 import pandas as pd
 import argparse
+import random
 import json
+import time
 import os
 
 # Global vars for current Bachelor/Bachelorette season count
@@ -20,6 +22,8 @@ def scrape1():
     # Temp write data to file
     with open('../data/ds1.json','w') as outjson:
         outjson.write(resp, outjson, indent=2)
+    # Assume the execution of multiple requests
+    time.sleep(random.uniform(3,8))
     return resp
 
 '''
@@ -31,6 +35,8 @@ def scrape2():
     # Temp write data to file
     with open('../data/ds2.json','w') as outjson:
         json.dump(resp, outjson, indent=2)
+    # Assume the execution of multiple requests
+    time.sleep(random.uniform(3,8))
     return resp
 
 '''
@@ -42,6 +48,8 @@ def scrape3(season):
     # Temp write data to file
     with open(f'../data/bachelor{season}.json','w') as outjson:
         json.dump(resp, outjson, indent=2)
+    # Assume the execution of multiple requests
+    time.sleep(random.uniform(3,8))
     return resp
 
 '''
@@ -52,6 +60,8 @@ def srcape4(season):
     resp = ds4.scrape_season(season)
     with open(f'../data/bachelorette{season}.json','w') as outjson:
         json.dump(resp, outjson, indent=2)
+    # Assume the execution of multiple requests
+    time.sleep(random.uniform(3,8))
     return resp
 
 '''
@@ -62,6 +72,8 @@ def scrape5(contestant):
     resp = ds5.scrape_contestant(contestant)
     with open(f'../data/{contestant.lower()}.json','w') as outjson:
         json.dump(resp, outjson, indent=2)
+    # Assume the execution of multiple requests
+    time.sleep(random.uniform(3,8))
     return resp
 
 def main():
