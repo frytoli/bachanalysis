@@ -1,6 +1,6 @@
 # The Bachelor/Bachelorette Contestant Face Analysis
 
-![](https://gph.is/2W1R2EC)
+![](https://media0.giphy.com/media/6wk5cC8J7ZEe8RR75e/giphy.gif)
 
 DSCI-510 Final Project
 
