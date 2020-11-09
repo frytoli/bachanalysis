@@ -2,8 +2,14 @@
 
 from multiprocessing import Pool
 from scrapers import *
+import pandas as pd
 import argparse
 import json
+import os
+
+# Global vars for current Bachelor/Bachelorette season count
+MAX_BACHELOR_SEASON = 24
+MAX_BACHELORETTE_SEASON = 17
 
 '''
 Collect general information from all seasons of The Bachelor
@@ -66,33 +72,37 @@ def main():
     parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', action='store', default=[None], help='a string contestant first and last name separated by "_" (only applicable with data source 5) (i.e. joelle_fletcher)')
     args = parser.parse_args()
 
-    scrape5(args.contestant[0])
-
-    '''
     # Initialize multiprocessing pool with 5 threads
     pool = Pool(processes=5)
     # Run asyncronous processes
-    if 1 in args['scraper']:
+    if 1 in args.scraper:
         ds1_resp = pool.map_async(scrape1)
-    if 2 in args['scraper']:
+    if 2 in args.scraper:
         ds2_resp = pool.map_async(scrape2)
-    if 3 in args['scraper']:
-        if type(args['season']) != list:
-            args['season'] = [args['season']]
-        if args['season'] == [None]:
-            args['season'] = list(range(1,25)) # Hardcoded max episodes (24)
-        ds3_resp = pool.map_async(scrape3, args['season'])
-    if 4 in args['scraper']:
-        if type(args['season']) != list:
-            args['season'] = [args['season']]
-        if args['season'] == [None]:
-            args['season'] = list(range(1,18)) # Hardcoded max episodes (17)
-        ds4_resp = pool.map_async(scrape4, args['season'])
-    if 5 in args['scraper']:
-        if type(args['contestant']) != list:
-            args['contestant'] = [args['contestant']]
-        ds5_resp = pool.map_async(scrape5, args['contestant'])
-    '''
+    if 3 in args.scraper:
+        if args.season == [None]:
+            args.season = list(range(1, MAX_BACHELOR_SEASON+1)) # Hardcoded max episodes
+        ds3_resp = pool.map_async(scrape3, args.season)
+    if 4 in args.scraper:
+        if args.season == [None]:
+            args.season = list(range(1, MAX_BACHELORETTE_SEASON+1)) # Hardcoded max episodes
+        ds4_resp = pool.map_async(scrape4, args.season)
+    if 5 in args.scraper:
+        if args.contestant == [None]:
+            # Read-in json files of all previously collected contestants
+            contestants = []
+            # Bachelor contestants
+            for season in range(1, MAX_BACHELOR_SEASON+1): # Hardcoded max episodes
+                if os.path.exists(f'../data/bachelor{season}.json'):
+                    df = pd.read_json(f'../data/bachelor{season}.json')
+                    contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+            # Bachelorette contestants
+            for season in range(1, MAX_BACHELORETTE_SEASON+1): # Hardcoded max episodes
+                if os.path.exists(f'../data/bachelorette{season}.json'):
+                    df = pd.read_json(f'../data/bachelorette{season}.json')
+                    contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+            args.contestant = contestants
+        ds5_resp = pool.map_async(scrape5, args.contestant)
 
 
 if __name__ == '__main__':
