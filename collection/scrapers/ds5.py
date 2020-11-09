@@ -34,29 +34,43 @@ def scrape_contestant(contestant):
         ).text
     # Soup-ify the returned source
     soup = BeautifulSoup(dom, 'html.parser')
-    # Initialize data dictionary
-    data = {}
-    # Parse out headshot
-    headshot = soup.find('img', class_='pi-image-thumbnail')
-    headshot_b64 = None
-    if headshot:
-        headshot_src = headshot['src']
-        # Download image in temp file
-        ext = headshot_src.split('.')[-1].split('/')[0]
-        r = requests.get(
-            headshot_src,
-            headers={'User-Agent':select_ua()}
-        )
-        img = f"data{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
-        # Clean memory
-        del r
-        # Save base64 encoded image in json record
-        data['photo'] = img
-    # Parse out additional categorized info
-    infos = soup.findAll('div', class_='pi-item pi-data pi-item-spacing pi-border-color')
-    for pair in infos:
-        key = pair.find('h3').text
-        value = pair.find('div').text
-        data[key] = value
-    # Return
-    return data
+
+    # Check that there is contents on the page
+    alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
+    if alert_div:
+        print(f'No contents on page for {content}. Skipping.')
+        return None
+    else:
+        # Initialize data dictionary
+        data = {}
+        # Parse out headshot
+        headshot = soup.find('img', class_='pi-image-thumbnail')
+        headshot_b64 = None
+        if headshot:
+            headshot_src = headshot['src']
+            # Download image in temp file
+            ext = headshot_src.split('.')[-1].split('/')[0]
+            r = requests.get(
+                headshot_src,
+                headers={'User-Agent':select_ua()}
+            )
+            img = f"data{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
+            # Clean memory
+            del r
+            # Save base64 encoded image in json record
+            data['photo'] = img
+        # Parse out additional categorized info
+        infos = soup.findAll('div', class_='pi-item pi-data pi-item-spacing pi-border-color')
+        for pair in infos:
+            key = pair.find('h3').text
+            value = pair.find('div').text
+            data[key] = value
+        # Check to see if height information is included in wiki content
+        content = soup.find('div', id='content')
+        ps = content.findAll('p')
+        for p in ps:
+            b = p.find('b')
+            if b and b.text.strip().lower() == 'height':
+                data['height'] = p.text.lower().replace(b.text.strip().lower(),'').strip()
+        # Return
+        return data

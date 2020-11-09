@@ -11,7 +11,7 @@ import os
 
 # Global vars for current Bachelor/Bachelorette season count
 MAX_BACHELOR_SEASON = 24
-MAX_BACHELORETTE_SEASON = 17
+MAX_BACHELORETTE_SEASON = 16
 
 '''
 Collect general information from all seasons of The Bachelor
@@ -138,7 +138,8 @@ def main():
         # Write json response to file, if applicable
         if not to_db:
             with open(os.path.join(path_to_volume, 'ds5.json'),'w') as outfile:
-                json.dump(ds5_resp, outfile, indent=2)
+                # Do not store Nonetype objects
+                json.dump([resp for resp in ds5_data.get() if resp], outfile, indent=2)
 
 
 if __name__ == '__main__':
