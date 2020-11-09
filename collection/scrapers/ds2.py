@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import random
-import json
 
 def select_ua():
     user_agents = [
