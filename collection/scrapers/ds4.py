@@ -26,12 +26,18 @@ def scrape_season(season):
             url,
             headers={'User-Agent':select_ua()}
         ).text
-    # Soup-ify the returned source
-    soup = BeautifulSoup(dom, 'html.parser')
-    # Parse out contestants table
-    table = soup.find('table', class_='wikitable sortable')
-    # Convert html table to dataframe
-    df = pd.read_html(str(table), header=0)[0]
-    # Convert dataframe to dict
-    data = [record for record in df.to_dict(orient='records')]
-    return data
+
+    # Account for no page for the query
+    if 'Wikipedia does not have an article with this exact name' in dom:
+        print(f'Wikipedia does not have an article at {url}. Skipping.')
+        return None
+    else:
+        # Soup-ify the returned source
+        soup = BeautifulSoup(dom, 'html.parser')
+        # Parse out contestants table
+        table = soup.find('table', class_='wikitable sortable')
+        # Convert html table to dataframe
+        df = pd.read_html(str(table), header=0)[0]
+        # Convert dataframe to dict
+        data = [record for record in df.to_dict(orient='records')]
+        return data

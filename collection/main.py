@@ -54,7 +54,8 @@ def scrape3(season, output_format):
     resp = ds3.scrape_season(season)
     # Write json response to file, if applicable
     if output_format == 'file':
-        save_to_file(resp, 'ds3')
+        # Do not store Nonetype objects
+        save_to_file([rec for rec in resp if rec], 'ds3')
 
 '''
 Collect general information about all contestants from a given season or all seasons of The Bachelorette
@@ -65,7 +66,8 @@ def scrape4(season, output_format):
     time.sleep(random.uniform(3,8))
     resp = ds4.scrape_season(season)
     if output_format == 'file':
-        save_to_file(resp, 'ds4')
+        # Do not store Nonetype objects
+        save_to_file([rec for rec in resp if rec], 'ds4')
 
 '''
 Collect photos and additional physical information of one Bachelor/Bachelorette cast member or all Bachelor/Bachelorette cast members
@@ -78,7 +80,7 @@ def scrape5(contestant, output_format):
     # Write json response to file, if applicable
     if output_format == 'file':
         # Do not store Nonetype objects
-        save_to_file([rec for rec in resp.get() if rec], 'ds4')
+        save_to_file([rec for rec in resp if rec], 'ds4')
 
 def main():
     # Retrieve args
@@ -103,14 +105,28 @@ def main():
         ds2_data.get()
     if 3 in args.scraper:
         if args.season == [None]:
-            seasons = list(range(1, MAX_BACHELOR_SEASON+1)) # Hardcoded max episodes
+            # Read-in json file of previously collected general season info to get number of seasons
+            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd1.json')):
+                with open(os.path.join(PATH_TO_VOLUME, 'd1.json'),'r') as injson:
+                    general_info = json.load(injson)
+                max_season = len(general_info)
+            else:
+                print('No source for The Bachelor seasons. Please run collection on data source 1. Skipping.')
+            seasons = list(range(1, max_season+1))
         else:
             seasons = args.season
         ds3_data = pool.map_async(scrape3, [(s, output_format) for s in seasons])
         ds3_data.get()
     if 4 in args.scraper:
         if args.season == [None]:
-            seasons = list(range(1, MAX_BACHELORETTE_SEASON+1)) # Hardcoded max episodes
+            # Read-in json file of previously collected general season info to get number of seasons
+            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd2.json')):
+                with open(os.path.join(PATH_TO_VOLUME, 'd2.json'),'r') as injson:
+                    general_info = json.load(injson)
+                max_season = len(general_info)
+            else:
+                print('No source for The Bachelorette seasons. Please run collection on data source 2. Skipping.')
+            seasons = list(range(1, max_season+1))
         else:
             seasons = args.season
         ds4_data = pool.map_async(scrape4, [(s, output_format) for s in seasons])
@@ -124,13 +140,13 @@ def main():
                 df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'd3.json'))
                 contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
             else:
-                print('No source for Bachelor contestants. Please run collection on data source 3. Skipping.')
+                print('No source for The Bachelor contestants. Please run collection on data source 3. Skipping.')
             # Bachelorette contestants
             if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd4.json')):
                 df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'd4.json'))
                 contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
             else:
-                print('No source for Bachelorette contestants. Please run collection on data source 4. Skipping.')
+                print('No source for The Bachelorette contestants. Please run collection on data source 4. Skipping.')
         else:
             contestants = args.contestant
         ds5_data = pool.map_async(scrape5, [(c, output_format) for c in contestants])
