@@ -39,6 +39,8 @@ def scrape_season(season):
         if table:
             # Convert html table to dataframe
             df = pd.read_html(str(table), header=0)[0]
+            # Add Season column to dataframe
+            df['Season'] = [season for i in range(len(df.index))]
             # Convert dataframe to dict
             data = [record for record in df.to_dict(orient='records')]
             return data
