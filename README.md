@@ -66,27 +66,28 @@ docker run --volume $(pwd):/home/ collection 3 --output file
 
 ### Collect Data
 
-- [ ] Build scrapers
+- [x] Build scrapers
   - [x] Data source 1 scraper
   - [x] Data source 2 scraper
   - [x] Data source 3 scraper
   - [x] Data source 4 scraper
-  - [ ] Data source 5 scraper
+  - [x] Data source 5 scraper
     - [x] Scrape photo
     - [x] Scrape personal info
-    - [ ] Scrape additional personal info (i.e. height)
+    - [x] Scrape additional personal info (i.e. height)
 - [x] Multiprocess
-- [ ] Options
+- [x] Options
   - [x] Seasons
   - [x] Contestants
-  - [ ] Output format (this will tie-in to the "Model and Store Data" phase)
+  - [x] Output format (this will tie-in to the "Model and Store Data" phase)
 - [x] Dockerize
 - [ ] Collect all the datas!
 
 ### Model and Store Data
 
-- [ ] Build data storage
-- [ ] Model data
+- [x] Build data storage
+- [ ] Model data (We're partially there, but it could be better)
+- [x] Build and implement helper class to insert scraped data into database
 
 ### Analysis and Conclusions
 
