@@ -8,79 +8,98 @@ import random
 import json
 import time
 import os
+import re
 
-# Global vars for current Bachelor/Bachelorette season count
-MAX_BACHELOR_SEASON = 24
-MAX_BACHELORETTE_SEASON = 16
 # Global var for path to volume within container
 PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
+# Global compiled regex pattern for Wikipedia references
+REF_PATTERN = re.compile(r'\[.*\]')
 
 def save_to_file(data, ds):
     # Write json response to file
     with open(os.path.join(PATH_TO_VOLUME, f'{ds}.json'),'w') as outfile:
         json.dump(data, outfile, indent=2)
 
+def remove_wikipedia_refs(data):
+    # Replace pairs with references with pairs without references
+    for record in data:
+        for key, value in record.items():
+            if type(value) == str and '[' in value:
+                record[key] = REF_PATTERN.sub('', value)
+            try:
+                record[key] = int(record[key])
+            except ValueError:
+                # Cannot convert value to int
+                pass
+    return(data)
+
+def flatten_data(data):
+    # Flatten the nested response and do not store Nonetype objects
+    flat_data = []
+    for resp in data:
+        if resp:
+            flat_data += resp
+    return flat_data
+
 '''
 Collect general information from all seasons of The Bachelor
 https://en.wikipedia.org/wiki/The_Bachelor_(American_TV_series)
 '''
-def scrape1(output_format):
+def scrape1(_):
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
     resp = ds1.scrape()
-    # Write json response to file, if applicable
-    if output_format == 'file':
-        save_to_file(resp, 'ds1')
+    # Clean Wikipedia references from key-value pairs
+    resp = remove_wikipedia_refs(resp)
+    return resp
 
 '''
 Collect general information from all seasons of The Bachelorette
 https://en.wikipedia.org/wiki/The_Bachelorette
 '''
-def scrape2(output_format):
+def scrape2(_):
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
     resp = ds2.scrape()
-    # Write json response to file, if applicable
-    if output_format == 'file':
-        save_to_file(resp, 'ds2')
+    # Clean Wikipedia references from key-value pairs
+    resp = remove_wikipedia_refs(resp)
+    return resp
 
 '''
 Collect general information about all contestants from a given season or all seasons of The Bachelor
 https://en.wikipedia.org/wiki/The_Bachelor_(season_1)
 '''
-def scrape3(season, output_format):
+def scrape3(season):
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
     resp = ds3.scrape_season(season)
-    # Write json response to file, if applicable
-    if output_format == 'file':
-        # Do not store Nonetype objects
-        save_to_file([rec for rec in resp if rec], 'ds3')
+    # Clean Wikipedia references from key-value pairs
+    if resp:
+        resp = remove_wikipedia_refs(resp)
+    return resp
 
 '''
 Collect general information about all contestants from a given season or all seasons of The Bachelorette
 https://en.wikipedia.org/wiki/The_Bachelorette_(season_1)
 '''
-def scrape4(season, output_format):
+def scrape4(season):
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
     resp = ds4.scrape_season(season)
-    if output_format == 'file':
-        # Do not store Nonetype objects
-        save_to_file([rec for rec in resp if rec], 'ds4')
+    # Clean Wikipedia references from key-value pairs
+    if resp:
+        resp = remove_wikipedia_refs(resp)
+    return resp
 
 '''
 Collect photos and additional physical information of one Bachelor/Bachelorette cast member or all Bachelor/Bachelorette cast members
 https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
-def scrape5(contestant, output_format):
+def scrape5(contestant):
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
     resp = ds5.scrape_contestant(contestant)
-    # Write json response to file, if applicable
-    if output_format == 'file':
-        # Do not store Nonetype objects
-        save_to_file([rec for rec in resp if rec], 'ds4')
+    return resp
 
 def main():
     # Retrieve args
@@ -98,59 +117,84 @@ def main():
     pool = Pool(processes=5)
     # Run asyncronous processes
     if 1 in args.scraper:
-        ds1_data = pool.map_async(scrape1, [output_format])
-        ds1_data.get()
+        ds1_data = pool.map_async(scrape1, [None])
+        ds1_resp = ds1_data.get()
+        # Write flattened json response to file, if applicable
+        if output_format == 'file':
+            ds1_out = pool.starmap_async(save_to_file, [[flatten_data(ds1_resp), 'ds1']])
+            ds1_out.get()
     if 2 in args.scraper:
-        ds2_data = pool.map_async(scrape2, [output_format])
-        ds2_data.get()
+        ds2_data = pool.map_async(scrape2, [None])
+        ds2_resp = ds2_data.get()
+        # Write flattened json response to file, if applicable
+        if output_format == 'file':
+            ds2_out = pool.starmap_async(save_to_file, [[flatten_data(ds2_resp), 'ds2']])
+            ds2_out.get()
     if 3 in args.scraper:
         if args.season == [None]:
+            max_season = 0
             # Read-in json file of previously collected general season info to get number of seasons
-            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd1.json')):
-                with open(os.path.join(PATH_TO_VOLUME, 'd1.json'),'r') as injson:
+            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'ds1.json')):
+                with open(os.path.join(PATH_TO_VOLUME, 'ds1.json'),'r') as injson:
                     general_info = json.load(injson)
-                max_season = len(general_info)
+                max_season = max([rec['#'] for rec in general_info])
             else:
                 print('No source for The Bachelor seasons. Please run collection on data source 1. Skipping.')
             seasons = list(range(1, max_season+1))
         else:
             seasons = args.season
-        ds3_data = pool.map_async(scrape3, [(s, output_format) for s in seasons])
-        ds3_data.get()
+        ds3_data = pool.map_async(scrape3, seasons)
+        ds3_resp = ds3_data.get()
+        # Write json response to file, if applicable
+        if output_format == 'file':
+            ds3_out = pool.starmap_async(save_to_file, [[flatten_data(ds3_resp), 'ds3']])
+            ds3_out.get()
     if 4 in args.scraper:
         if args.season == [None]:
+            max_season = 0
             # Read-in json file of previously collected general season info to get number of seasons
-            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd2.json')):
-                with open(os.path.join(PATH_TO_VOLUME, 'd2.json'),'r') as injson:
+            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'ds2.json')):
+                with open(os.path.join(PATH_TO_VOLUME, 'ds2.json'),'r') as injson:
                     general_info = json.load(injson)
-                max_season = len(general_info)
+                max_season = max([rec['#'] for rec in general_info])
             else:
                 print('No source for The Bachelorette seasons. Please run collection on data source 2. Skipping.')
             seasons = list(range(1, max_season+1))
         else:
             seasons = args.season
-        ds4_data = pool.map_async(scrape4, [(s, output_format) for s in seasons])
-        ds4_data.get()
+        ds4_data = pool.map_async(scrape4, seasons)
+        ds4_resp = ds4_data.get()
+        # Write json response to file, if applicable
+        if output_format == 'file':
+            # Do not store Nonetype objects
+            ds4_out = pool.starmap_async(save_to_file, [[flatten_data(ds4_resp), 'ds4']])
+            ds4_out.get()
     if 5 in args.scraper:
         if args.contestant == [None]:
             # Read-in json files of all previously collected contestants
             contestants = []
             # Bachelor contestants
             if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd3.json')):
-                df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'd3.json'))
+                df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'ds3.json'))
                 contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
             else:
                 print('No source for The Bachelor contestants. Please run collection on data source 3. Skipping.')
             # Bachelorette contestants
             if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd4.json')):
-                df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'd4.json'))
+                df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'ds4.json'))
                 contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
             else:
                 print('No source for The Bachelorette contestants. Please run collection on data source 4. Skipping.')
         else:
             contestants = args.contestant
-        ds5_data = pool.map_async(scrape5, [(c, output_format) for c in contestants])
-        ds5_data.get()
+        ds5_data = pool.map_async(scrape5, contestants)
+        ds5_resp = ds5_data.get()
+        # Write json response to file, if applicable
+        if output_format == 'file':
+            # Do not store Nonetype objects
+            params = (([rec for rec in ds5_resp if rec], 'ds5'))
+            ds5_out = pool.starmap_async(save_to_file, params)
+            ds5_out.get()
 
 
 if __name__ == '__main__':
