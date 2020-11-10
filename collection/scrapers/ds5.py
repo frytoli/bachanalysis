@@ -56,11 +56,10 @@ def scrape_contestant(contestant):
         # Parse out additional categorized info
         infos = soup.findAll('div', class_='pi-item pi-data pi-item-spacing pi-border-color')
         for pair in infos:
-            key = pair.find('h3').text
+            key = pair.find('h3').text.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()
             value = pair.find('div').text
-            data[key.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()] = value
-        # Add default height key-value pair and check to see if height information is included in wiki content
-        data['height'] = ''
+            data[key] = value
+        # Attempt to find height information included in wiki content
         content = soup.find('div', id='content')
         ps = content.findAll('p')
         for p in ps:
