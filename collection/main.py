@@ -147,6 +147,7 @@ def main():
         ds3_resp = ds3_data.get()
         # Write json response to file, if applicable
         if output_format == 'file':
+            # Do not store Nonetype objects and flatten nested data
             ds3_out = pool.starmap_async(save_to_file, [[flatten_data(ds3_resp), 'ds3']])
             ds3_out.get()
     if 4 in args.scraper:
@@ -166,7 +167,7 @@ def main():
         ds4_resp = ds4_data.get()
         # Write json response to file, if applicable
         if output_format == 'file':
-            # Do not store Nonetype objects
+            # Do not store Nonetype objects and flatten nested data
             ds4_out = pool.starmap_async(save_to_file, [[flatten_data(ds4_resp), 'ds4']])
             ds4_out.get()
     if 5 in args.scraper:
@@ -174,15 +175,15 @@ def main():
             # Read-in json files of all previously collected contestants
             contestants = []
             # Bachelor contestants
-            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd3.json')):
+            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'ds3.json')):
                 df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'ds3.json'))
-                contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+                contestants += [name.strip().replace(' ','_') for name in df['Name']]
             else:
                 print('No source for The Bachelor contestants. Please run collection on data source 3. Skipping.')
             # Bachelorette contestants
-            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'd4.json')):
+            if os.path.exists(os.path.join(PATH_TO_VOLUME, 'ds4.json')):
                 df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'ds4.json'))
-                contestants += [name.strip().replace(' ','_') for name in df['Name'] if ' ' in name.strip()]
+                contestants += [name.strip().replace(' ','_') for name in df['Name']]
             else:
                 print('No source for The Bachelorette contestants. Please run collection on data source 4. Skipping.')
         else:
@@ -191,9 +192,8 @@ def main():
         ds5_resp = ds5_data.get()
         # Write json response to file, if applicable
         if output_format == 'file':
-            # Do not store Nonetype objects
-            params = (([rec for rec in ds5_resp if rec], 'ds5'))
-            ds5_out = pool.starmap_async(save_to_file, params)
+            # Do not store Nonetype objects and flatten nested data
+            ds5_out = pool.starmap_async(save_to_file, [[flatten_data(ds5_resp), 'ds5']])
             ds5_out.get()
 
 
