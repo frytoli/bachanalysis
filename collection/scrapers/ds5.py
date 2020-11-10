@@ -38,7 +38,7 @@ def scrape_contestant(contestant):
     # Check that there is contents on the page
     alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
     if alert_div:
-        print(f'No contents on page for {content}. Skipping.')
+        print(f'No contents on page for {contestant}. Skipping.')
         return None
     else:
         # Initialize data dictionary
@@ -64,8 +64,9 @@ def scrape_contestant(contestant):
         for pair in infos:
             key = pair.find('h3').text
             value = pair.find('div').text
-            data[key] = value
-        # Check to see if height information is included in wiki content
+            data[key.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()] = value
+        # Add default height key-value pair and check to see if height information is included in wiki content
+        data['height'] = ''
         content = soup.find('div', id='content')
         ps = content.findAll('p')
         for p in ps:
