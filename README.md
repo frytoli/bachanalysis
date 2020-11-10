@@ -1,4 +1,4 @@
-# The Bachelor/Bachelorette Contestant Face Analysis
+# The Bachelor/Bachelorette Contestant Physical Attribute Analysis
 
 ![](https://media0.giphy.com/media/6wk5cC8J7ZEe8RR75e/giphy.gif)
 
@@ -21,9 +21,10 @@ Compare the physical features and place (the number of episodes the contestant w
 #### Arguments:
 
 * scraper: Required. An integer associated with the desired scraper to be executed. This can be a list of integers.
-* season: Optional. Default: None. An integer associated with a desired season to collect data on. Only applicable with data sources 3 and 4.
-* contestant: Optional. Default: None. A case insensitive string of the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette. Only applicable with data source 5.
-* output: Optional. Default: db. A case insensitive string desired output format for the collected data - either "db" for inserting the data into a SQL database or "file" for writing the data to a json file in ./data/. Applicable with all data sources.
+* season: Optional. An integer or list of integers associated with a desired season to collect data on. Only applicable with data sources 3 and 4.
+* contestant: Optional. Default: A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette. Only applicable with data source 5.
+* file: Optional. Output retrieved data to a file in ./data/. Note that all retrieved data is ALWAYS inserted into a database, including when this flag is specified. Applicable with all data sources.
+* overwrite: Optional. Overwrite any previously saved information from a data source in the database (dump and create a new data source table). Applicable with all data sources.
 
 #### Examples:
 
@@ -45,10 +46,22 @@ docker build collection/ --tag collection
 docker run --volume $(pwd):/home/ collection 5 --contestant dale_moss
 ```
 
-Collect data from all contestants from all seasons of the Bachelor and write the data to a json file located in ./data/:
+Collect data from all contestants from all seasons of the Bachelor and write the data to a json file located in ./data/ (data is still inserted into the database):
 ```
 docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 3 --output file
+docker run --volume $(pwd):/home/ collection 3 --file
+```
+
+Collect all available data from sources 1 and 2 and overwrite any old data in the database:
+```
+docker build collection/ --tag collection
+docker run --volume $(pwd):/home/ collection 1 2 --overwrite
+```
+
+Collect all available data from sources 1 and 2, collection available data from The Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, output all retrieved data to associated files (these will be ./data/ds1.json, ./data/ds2.json, ./data/ds4.json, and ./data/ds5.json), and overwrite any old data in the pertinent database tables (tables: ds1, ds2, ds4, and ds5):
+```
+docker build collection/ --tag collection
+docker run --volume $(pwd):/home/ collection 1 2 4 5 --season 8 9 10 --contestant naomi_crespo derek_peth --file --overwrite
 ```
 
 ## To-Do
@@ -68,9 +81,13 @@ docker run --volume $(pwd):/home/ collection 3 --output file
 
 - [x] Build scrapers
   - [x] Data source 1 scraper
+    - [x] Rename '#' column
   - [x] Data source 2 scraper
+    - [x] Rename '#' column
   - [x] Data source 3 scraper
+    - [x] Rename 'Job' column
   - [x] Data source 4 scraper
+    - [x] Rename 'Job' column
   - [x] Data source 5 scraper
     - [x] Scrape photo
     - [x] Scrape personal info
@@ -80,15 +97,28 @@ docker run --volume $(pwd):/home/ collection 3 --output file
   - [x] Seasons
   - [x] Contestants
   - [x] Output format (this will tie-in to the "Model and Store Data" phase)
+  - [x] Overwrite
 - [x] Dockerize
 - [ ] Collect all the datas!
 
 ### Model and Store Data
 
 - [x] Build data storage
-- [ ] Model data (We're partially there, but it could be better)
+- [x] Model data
+  - [x] Create data models for data sources
+  - [x] Build logic for modeling data records
+    - [x] Data source 1 scraper
+      - [x] Rename '#' column to 'Season'
+    - [x] Data source 2 scraper
+      - [x] Rename '#' column to 'Season'
+    - [x] Data source 3 scraper
+      - [x] Rename 'Job' column to 'Occupation'
+    - [x] Data source 4 scraper
+      - [x] Rename 'Job' column to 'Occupation'
+    - [x] DB class hardcoded data structures and helper methods
 - [x] Build and implement helper class to insert scraped data into database
 
 ### Analysis and Conclusions
 
 - [ ] Analyze data and draw conclusions
+  - [ ] How should I handle missing data?
