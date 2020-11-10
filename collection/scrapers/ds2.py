@@ -32,6 +32,10 @@ def scrape():
     table = soup.find('table', class_='wikitable plainrowheaders')
     # Convert html table to dataframe
     df = pd.read_html(str(table), header=0)[0]
+    # Rename '#' column to 'Season'
+    df = df.rename(columns={'#': 'Season'})
+    # Normalized and remove any special characters from column names
+    df = df.rename(columns={col: f'''{col.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()}''' for col in df.columns})
     # Convert dataframe to dict
     data = [record for record in df.to_dict(orient='records')]
     return data
