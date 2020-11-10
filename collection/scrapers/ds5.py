@@ -5,10 +5,6 @@ import requests
 import random
 import base64
 
-def normalize_name(contestant):
-    name = contestant.split('_')
-    return f'{name[0][0].upper()}{name[0][1:].lower()}_{name[1][0].upper()}{name[1][1:].lower()}'
-
 def select_ua():
     user_agents = [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
@@ -24,9 +20,7 @@ def select_ua():
     return random.choice(user_agents)
 
 def scrape_contestant(contestant):
-    # Normalize contestant name for url
-    contestant = normalize_name(contestant)
-    url = f'https://bachelor-nation.fandom.com/wiki/{contestant}'
+    url = f'https://bachelor-nation.fandom.com/wiki/{requests.utils.quote(contestant)}'
     # Get url and save DOM
     dom = requests.get(
             url,
