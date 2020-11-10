@@ -19,8 +19,12 @@ def select_ua():
     ]
     return random.choice(user_agents)
 
-def scrape():
-    url = 'https://en.wikipedia.org/wiki/The_Bachelorette'
+def scrape(show):
+    # Select URL
+    if show == 'bachelor':
+        url = 'https://en.wikipedia.org/wiki/The_Bachelor_(American_TV_series)'
+    elif show == 'bachelorette':
+        url = 'https://en.wikipedia.org/wiki/The_Bachelorette'
     # Get url and save DOM
     dom = requests.get(
             url,

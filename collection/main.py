@@ -54,7 +54,7 @@ def scrape1(_):
     bachdb = db.bachdb(PATH_TO_DB)
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
-    resp = ds1.scrape()
+    resp = wikipedia.scrape('bachelor')
     # Clean Wikipedia references from key-value pairs
     resp = remove_wikipedia_refs(resp)
     # Add documents to ds1 table
@@ -70,7 +70,7 @@ def scrape2(_):
     bachdb = db.bachdb(PATH_TO_DB)
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
-    resp = ds2.scrape()
+    resp = wikipedia.scrape('bachelorette')
     # Clean Wikipedia references from key-value pairs
     resp = remove_wikipedia_refs(resp)
     # Add documents to ds2 table
@@ -79,16 +79,16 @@ def scrape2(_):
 
 '''
 Collect general information about all contestants from a given season or all seasons of The Bachelor
-https://en.wikipedia.org/wiki/The_Bachelor_(season_1)
+https://bachelor-nation.fandom.com/wiki/The_Bachelor_(Season_1)
 '''
 def scrape3(season):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
-    resp = ds3.scrape_season(season)
-    # Continue if response != None
-    if resp:
+    resp = bachelornation.scrape_season('bachelor', season)
+    # Continue if response is not empty
+    if len(resp) > 0:
         # Clean Wikipedia references from key-value pairs
         resp = remove_wikipedia_refs(resp)
         # Add documents to ds3 table
@@ -97,16 +97,16 @@ def scrape3(season):
 
 '''
 Collect general information about all contestants from a given season or all seasons of The Bachelorette
-https://en.wikipedia.org/wiki/The_Bachelorette_(season_1)
+https://bachelor-nation.fandom.com/wiki/The_Bachelorette_(Season_1)
 '''
 def scrape4(season):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
-    resp = ds4.scrape_season(season)
-    # Continue if response != None
-    if resp:
+    resp = bachelornation.scrape_season('bachelorette', season)
+    # Continue if response is not empty
+    if len(resp) > 0:
         # Clean Wikipedia references from key-value pairs
         resp = remove_wikipedia_refs(resp)
         # Add documents to ds4 table
@@ -122,9 +122,9 @@ def scrape5(contestant):
     bachdb = db.bachdb(PATH_TO_DB)
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
-    resp = ds5.scrape_contestant(contestant)
-    # Continue if response != None
-    if resp:
+    resp = bachelornation.scrape_contestant(contestant)
+    # Continue if response is not empty
+    if len(resp) > 0:
         # Add documents to ds5 table
         bachdb.insert_doc('ds5', resp)
     del resp # Do this better (handle file output option)
