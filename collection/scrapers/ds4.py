@@ -39,8 +39,19 @@ def scrape_season(season):
         if table:
             # Convert html table to dataframe
             df = pd.read_html(str(table), header=0)[0]
-            # Add Season column to dataframe
-            df['Season'] = [season for i in range(len(df.index))]
+            # Normalized and remove any special characters from column names
+            df = df.rename(columns={col: f'''{col.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()}''' for col in df.columns})
+            # Add season column to dataframe
+            df['season'] = [season for i in range(len(df.index))]
+            # Remove ref column from dataframe if applicable
+            if 'ref' in df.columns:
+                df = df.drop(columns='ref')
+            # Add place column to dataframe if applicable
+            if 'place' not in df.columns:
+                df['place'] = [0 for i in range(len(df.index))]
+            # Rename job column to occupation if applicable
+            if 'occupation' in df.columns:
+                df = df.rename(columns={'job':'occupation'})
             # Convert dataframe to dict
             data = [record for record in df.to_dict(orient='records')]
             return data
