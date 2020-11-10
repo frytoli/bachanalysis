@@ -49,7 +49,7 @@ def flatten_data(data):
 
 def prepare_names(contestants):
     # Preapre contestant names for URL
-    return [NN_PATTERN.sub('', name.strip()).replace('  ',' ').replace(' ','_') for name in contestants]
+    return [NN_PATTERN.sub('', name.strip()).replace('  ',' ').replace(' ','_').replace(',','') for name in contestants]
 
 '''
 Collect general information from all seasons of The Bachelor
@@ -112,10 +112,8 @@ def scrape5(contestant):
     time.sleep(random.uniform(3,8))
     resp = ds5.scrape_contestant(contestant)
     if resp:
-        # Check if table exists in database
-        if not db.table_exists('ds5'):
-            # Create a ds5 table
-            db.create_table('ds5',  db.craft_headers(resp))
+        # Create a ds5 table if one does not already exist
+        db.create_table('ds5',  db.craft_headers(resp), drop_existing=False)
         # Add document to ds5 table
         db.insert_doc('ds5', resp)
     del resp # Do this better (handle file output option)
