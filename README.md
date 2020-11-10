@@ -52,13 +52,13 @@ docker build collection/ --tag collection
 docker run --volume $(pwd):/home/ collection 3 --file
 ```
 
-Collect all available data from sources 1 and 2 and overwrite any old data in the database:
+Collect all available data from sources 1 and 2 and overwrite any old data from these data sources (drop and create new ds1 and ds2 tables) in the database:
 ```
 docker build collection/ --tag collection
 docker run --volume $(pwd):/home/ collection 1 2 --overwrite
 ```
 
-Collect all available data from sources 1 and 2, collection available data from The Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, output all retrieved data to associated files (these will be ./data/ds1.json, ./data/ds2.json, ./data/ds4.json, and ./data/ds5.json), and overwrite any old data in the pertinent database tables (tables: ds1, ds2, ds4, and ds5):
+Collect all available data from sources 1 and 2, collection available data from The Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, output all retrieved data to associated files (these will be ./data/ds1.json, ./data/ds2.json, ./data/ds4.json, and ./data/ds5.json), and overwrite any old data in the pertinent database tables (drop and create new ds1, ds2, ds4, and ds5 tables):
 ```
 docker build collection/ --tag collection
 docker run --volume $(pwd):/home/ collection 1 2 4 5 --season 8 9 10 --contestant naomi_crespo derek_peth --file --overwrite
