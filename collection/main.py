@@ -89,8 +89,6 @@ def scrape3(season):
     resp = bachelornation.scrape_season('bachelor', season)
     # Continue if response is not empty
     if len(resp) > 0:
-        # Clean Wikipedia references from key-value pairs
-        resp = remove_wikipedia_refs(resp)
         # Add documents to ds3 table
         bachdb.insert_docs('ds3', resp)
     return resp
@@ -107,8 +105,6 @@ def scrape4(season):
     resp = bachelornation.scrape_season('bachelorette', season)
     # Continue if response is not empty
     if len(resp) > 0:
-        # Clean Wikipedia references from key-value pairs
-        resp = remove_wikipedia_refs(resp)
         # Add documents to ds4 table
         bachdb.insert_docs('ds4', resp)
     return resp
