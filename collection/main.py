@@ -23,16 +23,6 @@ NN_PATTERN = re.compile(r'\"[a-zA-Z]*\"')
 '''
 Helper functions
 '''
-def str_to_bool(value):
-    if isinstance(value, bool):
-       return value
-    if value.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected for overwrite-tables')
-
 def save_to_file(data, ds):
     # Write json response to file
     with open(os.path.join(PATH_TO_VOLUME, f'{ds}.json'),'w') as outfile:
