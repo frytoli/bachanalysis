@@ -15,6 +15,8 @@ import re
 PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
 # Global compiled regex pattern for Wikipedia references
 REF_PATTERN = re.compile(r'\[.*\]')
+# Global compiled regex pattern for ignoring quoted nicknames
+NN_PATTERN = re.compile(r'\"[a-zA-Z]*\"')
 
 '''
 Helper functions
@@ -44,6 +46,10 @@ def flatten_data(data):
         if resp:
             flat_data += resp
     return flat_data
+
+def prepare_names(contestants):
+    # Preapre contestant names for URL
+    return [NN_PATTERN.sub('', name.strip()).replace('  ',' ').replace(' ','_') for name in contestants]
 
 '''
 Collect general information from all seasons of The Bachelor
@@ -100,10 +106,20 @@ Collect photos and additional physical information of one Bachelor/Bachelorette 
 https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
 def scrape5(contestant):
+    # Initialize sqldb object
+    db = sqldb.db(os.path.join(PATH_TO_VOLUME, 'bach.db'))
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
     resp = ds5.scrape_contestant(contestant)
-    return resp
+    if resp:
+        # Check if table exists in database
+        if not db.table_exists('ds5'):
+            # Create a ds5 table
+            db.create_table('ds5',  db.craft_headers(resp))
+        # Add document to ds5 table
+        db.insert_doc('ds5', resp)
+    del resp # Do this better (handle file output option)
+    #return resp
 
 def main():
     # Retrieve args
@@ -220,25 +236,25 @@ def main():
             # Read-in json files of all previously collected contestants
             contestants = []
             # Attempt to read data from database
-            contestants += db.get_docs('ds3')
-            contestants += db.get_docs('ds4')
+            contestants += prepare_names([name[0] for name in db.get_docs('ds3', column='name')])
+            contestants += prepare_names([name[0] for name in db.get_docs('ds4', column='name')])
             # Otherwise, attempt to read data from data sources 3 and 4 files
-            if contestants == []:
+            if len(contestants) == 0:
                 # Bachelor contestants
                 if os.path.exists(os.path.join(PATH_TO_VOLUME, 'ds3.json')):
                     df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'ds3.json'))
-                    contestants += [name.strip().replace(' ','_') for name in df['Name']]
+                    contestants += prepare_names(df['name'])
                 else:
                     print('No source for The Bachelor contestants. Please run collection on data source 3. Skipping.')
                 # Bachelorette contestants
                 if os.path.exists(os.path.join(PATH_TO_VOLUME, 'ds4.json')):
                     df = pd.read_json(os.path.join(PATH_TO_VOLUME, 'ds4.json'))
-                    contestants += [name.strip().replace(' ','_') for name in df['Name']]
+                    contestants += prepare_names(df['name'])
                 else:
                     print('No source for The Bachelorette contestants. Please run collection on data source 4. Skipping.')
         else:
             contestants = args.contestant
-        if contestants != []:
+        if len(contestants) > 0:
             ds5_data = pool.map_async(scrape5, contestants)
             ds5_resp = ds5_data.get()
             # Write json response to file, if applicable
@@ -246,15 +262,6 @@ def main():
                 # Do not store Nonetype objects and flatten nested data
                 ds5_out = pool.starmap_async(save_to_file, [[ds5_resp, 'ds5']])
                 ds5_out.get()
-            # Else, insert documents into database
-            else:
-                # Do not store Nonetype objects
-                ds5_good = [doc for doc in ds5_resp if doc]
-                if ds5_good != []:
-                    # Create a ds3 table (drop previously existing if applicable)
-                    db.create_table('ds5',  db.craft_headers(ds5_good[0]), drop_existing=True)
-                    # Add documents to ds3 table
-                    db.insert_docs('ds5', [doc for doc in ds5_good if doc])
 
 
 if __name__ == '__main__':
