@@ -17,8 +17,6 @@ PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
 PATH_TO_DB = os.path.join(PATH_TO_VOLUME, 'thebach.db')
 # Global compiled regex pattern for Wikipedia references
 REF_PATTERN = re.compile(r'\[.*\]')
-# Global compiled regex pattern for ignoring quoted nicknames
-NN_PATTERN = re.compile(r'\"[a-zA-Z]*\"')
 
 '''
 Helper functions
