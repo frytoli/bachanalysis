@@ -41,10 +41,6 @@ def remove_wikipedia_refs(data):
                 pass
     return(data)
 
-def prepare_names(contestants):
-    # Preapre contestant names for URL
-    return [NN_PATTERN.sub('', name.strip()).replace('  ',' ').replace(' ','_').replace(',','') for name in contestants]
-
 '''
 Collect general information from all seasons of The Bachelor
 https://en.wikipedia.org/wiki/The_Bachelor_(American_TV_series)
@@ -113,12 +109,12 @@ def scrape4(season):
 Collect photos and additional physical information of one Bachelor/Bachelorette cast member or all Bachelor/Bachelorette cast members
 https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
-def scrape5(contestant):
+def scrape5(profile_url):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
     # Assume the execution of multiple requests, randomize execution time
     time.sleep(random.uniform(3,8))
-    resp = bachelornation.scrape_contestant(contestant)
+    resp = bachelornation.scrape_contestant(profile_url)
     # Continue if response is not empty
     if len(resp) > 0:
         # Add documents to ds5 table
@@ -207,11 +203,11 @@ def main():
             contestants = args.contestant
         # Else, read contestants from database
         else:
-            contestants = []
-            contestants += prepare_names([name[0] for name in bachdb.get_docs('ds3', column='name')])
-            contestants += prepare_names([name[0] for name in bachdb.get_docs('ds4', column='name')])
-        if len(contestants) > 0:
-            ds5_data = pool.map_async(scrape5, contestants)
+            profile_urls = []
+            profile_urls += bachdb.get_docs('ds3', column='profile_url')
+            profile_urls += bachdb.get_docs('ds4', column='profile_url')
+        if len(profile_urls) > 0:
+            ds5_data = pool.map_async(scrape5, [profile_url[0] for profile_url in profile_urls]) # Account for the fact that sqlite3 returns tuples
             ds5_resp = ds5_data.get()
             # If applicable, write data to file
             if args.file:
