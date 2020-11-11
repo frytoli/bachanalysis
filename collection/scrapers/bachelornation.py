@@ -110,12 +110,11 @@ def scrape_contestant(profile_url):
         if headshot:
             headshot_src = headshot['src']
             # Download image in temp file
-            ext = headshot_src.split('.')[-1].split('/')[0]
             r = requests.get(
                 headshot_src,
                 headers={'User-Agent':select_ua()}
             )
-            img = f"data{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
+            img = f"data:{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
             # Clean memory
             del r
             # Save base64 encoded image in json record
