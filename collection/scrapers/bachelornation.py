@@ -53,6 +53,7 @@ def scrape_season(show, season):
                 if caption:
                     name = caption.find('a')
                     if name:
+                        profile_url = f'''https://bachelor-nation.fandom.com{name['href']}'''
                         values = re.split(r'<br\/{0,1}>', str(caption))
                         if len(values) == 5:
                             contestants.append({
@@ -61,6 +62,7 @@ def scrape_season(show, season):
                                 keys[2]: values[2].strip(),
                                 keys[3]: values[3].strip(),
                                 keys[4]: values[4].strip(),
+                                'profile_url': profile_url,
                                 'season': season
                             })
             return contestants
@@ -77,18 +79,21 @@ def scrape_season(show, season):
                         # We have confirmed we have the correct table of contestants
                         # Normalized column names
                         df = df.rename(columns={col: col.strip().lower() for col in df.columns})
-                        # Add Season column
+                        # Add profile_url column
+                        df['profile_url'] = [f'''https://bachelor-nation.fandom.com{a['href']}''' for a in table.findAll('a')]
+                        # Add season column
                         df['season'] = [season for i in range(len(df.index))]
                         # Convert dataframe to dict
                         contestants = [record for record in df.to_dict(orient='records')]
                         return contestants
     return contestants
 
-def scrape_contestant(contestant):
-    url = f'https://bachelor-nation.fandom.com/wiki/{requests.utils.quote(contestant)}'
+def scrape_contestant(profile_url):
+    # Initialize data dictionary
+    data = {}
     # Get url and save DOM
     dom = requests.get(
-            url,
+            profile_url,
             headers={'User-Agent':select_ua()}
         ).text
     # Soup-ify the returned source
@@ -98,10 +103,7 @@ def scrape_contestant(contestant):
     alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
     if alert_div:
         print(f'No contents on page for {contestant}. Skipping.')
-        return None
     else:
-        # Initialize data dictionary
-        data = {}
         # Parse out headshot
         headshot = soup.find('img', class_='pi-image-thumbnail')
         headshot_b64 = None
@@ -131,5 +133,4 @@ def scrape_contestant(contestant):
             b = p.find('b')
             if b and b.text.strip().lower() == 'height':
                 data['height'] = p.text.lower().replace(b.text.strip().lower(),'').strip()
-        # Return
-        return data
+    return data

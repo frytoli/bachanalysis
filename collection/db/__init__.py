@@ -18,11 +18,11 @@ class bachdb():
             },
             'ds3': {
                 'name': 'ds3',
-                'keys': [('name', 'text'), ('age', 'integer'), ('hometown', 'text'), ('occupation', 'text'), ('eliminated', 'text'), ('season', 'integer'), ('place', 'integer')]
+                'keys': [('name', 'text'), ('age', 'integer'), ('hometown', 'text'), ('occupation', 'text'), ('eliminated', 'text'), ('season', 'integer'), ('profile_url', 'text'), ('place', 'integer')]
             },
             'ds4': {
                 'name': 'ds4',
-                'keys': [('name', 'text'), ('age', 'integer'), ('hometown', 'text'), ('occupation', 'text'), ('eliminated', 'text'), ('season', 'integer'), ('place', 'integer')]
+                'keys': [('name', 'text'), ('age', 'integer'), ('hometown', 'text'), ('occupation', 'text'), ('eliminated', 'text'), ('season', 'integer'), ('profile_url', 'text'), ('place', 'integer')]
             },
             'ds5': {
                 'name': 'ds5',
