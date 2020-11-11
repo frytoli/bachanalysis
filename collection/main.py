@@ -201,11 +201,14 @@ def main():
             contestants = args.contestant
         # Else, read contestants from database
         else:
-            profile_urls = []
-            profile_urls += bachdb.get_docs('ds3', column='profile_url')
-            profile_urls += bachdb.get_docs('ds4', column='profile_url')
-        if len(profile_urls) > 0:
-            ds5_data = pool.map_async(scrape5, [profile_url[0] for profile_url in profile_urls]) # Account for the fact that sqlite3 returns tuples
+            contestants = []
+            contestants += bachdb.get_docs('ds3', column='profile_url')
+            contestants += bachdb.get_docs('ds4', column='profile_url')
+        if len(contestants) > 0:
+            # Account for the fact that sqlite3 returns tuples
+            if type(contestants[0]) == tuple:
+                contestants = [contestant[0] for contestant in contestants]
+            ds5_data = pool.map_async(scrape5, contestants)
             ds5_resp = ds5_data.get()
             # If applicable, write data to file
             if args.file:

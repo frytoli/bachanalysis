@@ -26,7 +26,7 @@ class bachdb():
             },
             'ds5': {
                 'name': 'ds5',
-                'keys': [('photo', 'text'), ('name', 'text'), ('born', 'text'), ('hometown', 'text'), ('occupation', 'text'), ('seasons', 'text'), ('height', 'text')]
+                'keys': [('photo', 'text'), ('name', 'text'), ('born', 'text'), ('hometown', 'text'), ('occupation', 'text'), ('seasons', 'text'), ('social_media', 'text'), ('height', 'text')]
             },
         }
         self.conn = sqlite3.connect(dbname)

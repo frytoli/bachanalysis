@@ -88,12 +88,17 @@ def scrape_season(show, season):
                         return contestants
     return contestants
 
-def scrape_contestant(profile_url):
+def scrape_contestant(contestant):
     # Initialize data dictionary
     data = {}
+    # Check if url or name was given
+    if not contestant.startswith('http'):
+        # Normalize contestant name
+        contestant = f'''{contestant[0].upper()}{contestant.split('_')[0][1:]}_{contestant.split('_')[1][0].upper()}{contestant.split('_')[1][1:]}'''
+        contestant = f'https://bachelor-nation.fandom.com/wiki/{contestant}'
     # Get url and save DOM
     dom = requests.get(
-            profile_url,
+            contestant,
             headers={'User-Agent':select_ua()}
         ).text
     # Soup-ify the returned source
@@ -123,7 +128,13 @@ def scrape_contestant(profile_url):
         infos = soup.findAll('div', class_='pi-item pi-data pi-item-spacing pi-border-color')
         for pair in infos:
             key = pair.find('h3').text.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()
-            value = pair.find('div').text
+            value = pair.find('div')
+            # If key is social_media, retrieve and save all social media links
+            if key == 'social_media':
+                value = f'''{', '.join([a['href'] for a in value.findAll('a')])}'''
+            # Otherwise, save the text
+            else:
+                value = value.text
             data[key] = value
         # Attempt to find height information included in wiki content
         content = soup.find('div', id='content')
