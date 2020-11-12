@@ -59,8 +59,7 @@ def scrape1():
     # Clean Wikipedia references from key-value pairs
     scraped = remove_wikipedia_refs(scraped)
     # Prepare data for database
-    docs = []
-    docs += [bachdata.dict_to_doc(1, item) for item in scraped]
+    docs = [bachdata.dict_to_doc(1, item) for item in scraped]
     # Add documents to ds1 table
     bachdb.insert_docs('ds1', docs)
 
@@ -85,8 +84,7 @@ def scrape2(show, season):
     # Continue if response is not empty
     if len(scraped) > 0:
         # Prepare data for database
-        docs = []
-        docs += [bachdata.dict_to_doc(2, item) for item in scraped]
+        docs = [bachdata.dict_to_doc(2, item) for item in scraped]
         # Add documents to ds2 table
         bachdb.insert_docs('ds2', docs)
 
@@ -129,14 +127,15 @@ def getlocal(ds):
     bachdb = db.bachdb(PATH_TO_DB)
     # Initialize data model handler object
     bachdata = data.bachdata()
-    # Scrape
     # Validate existence of file
-    if os.path.exists(os.path.join(PATH_TO_VOLUME), f'raw{ds}.json'):
+    if os.path.exists(os.path.join(PATH_TO_VOLUME), f'raw{ds}.{ext}'):
         # Read local file in from ./local/
         with open(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json'), 'r') as injson:
             raw_data = json.load(injson)
+        # Convert raw data items to database documents
+        docs = [bachdata.dict_to_doc(ds, item) for item in raw_data]
         # Add documents in batch to database
-        bachdb.insert_docs(f'ds{ds}', raw_data)
+        bachdb.insert_docs(f'ds{ds}', docs)
     else:
         print(f'Mayday! No input file ./local/raw{ds}.json found')
 
@@ -201,8 +200,7 @@ def main():
                 # If no contestants are given by user...
                 if len(args.contestant) == 0:
                     # Retrieve all contestants from database
-                    contestants = []
-                    contestants += bachdb.get_docs('ds2', column='profile_url')
+                    contestants = bachdb.get_docs('ds2', column='profile_url')
                     # If no data was retrieved, alert the user
                     if len(contestants) == 0:
                         print(f'Mayday! Unable to collect data set 3. Has data set 2 been collected and stored?')
