@@ -40,7 +40,7 @@ def scrape_season(show, season):
     # Check that there is contents on the page
     alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
     if alert_div:
-        print(f'No contents on page for {contestant}. Skipping.')
+        print(f'No contents on page for {season}. Skipping.')
     else:
         # Define list of known keys
         keys = ['name', 'age', 'hometown', 'occupation', 'eliminated']
@@ -63,7 +63,8 @@ def scrape_season(show, season):
                                 keys[3]: values[3].strip(),
                                 keys[4]: values[4].strip(),
                                 'profile_url': profile_url,
-                                'season': season
+                                'season': season,
+                                'show': show
                             })
             return contestants
         # Else, check for table style (commone with older season pages)
