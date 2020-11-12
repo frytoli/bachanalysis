@@ -76,7 +76,7 @@ def scrape34(ds, season):
     time.sleep(random.uniform(3,8))
     if ds == 3:
         resp = bachelornation.scrape_season('bachelor', season)
-    elif ds == 5:
+    elif ds == 4:
         resp = bachelornation.scrape_season('bachelorette', season)
     else:
         print(f'Mayday! Cannot scrape data set {ds} with scraper "bacahelornation"')
