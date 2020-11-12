@@ -13,6 +13,7 @@ import argparse
 import random
 import json
 import time
+import data
 import db
 import os
 import re
@@ -27,9 +28,9 @@ REF_PATTERN = re.compile(r'\[.*\]')
 '''
 Helper functions
 '''
-def remove_wikipedia_refs(data):
+def remove_wikipedia_refs(raw_data):
     # Replace pairs with references with pairs without references
-    for record in data:
+    for record in raw_data:
         for key, value in record.items():
             if type(value) == str and '[' in value:
                 record[key] = REF_PATTERN.sub('', value)
@@ -38,93 +39,110 @@ def remove_wikipedia_refs(data):
             except ValueError:
                 # Cannot convert value to int
                 pass
-    return(data)
+    return(raw_data)
 
 '''
-Data Sets 1 and 2
+Data Sets 1.1 and 1.2
 Collect general information from all seasons of The Bachelor or The Bachelorette
 https://en.wikipedia.org/wiki/The_Bachelor_(American_TV_series)
 https://en.wikipedia.org/wiki/The_Bachelorette
 '''
-def scrape12(ds):
+def scrape1():
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
-    # Assume the execution of multiple requests, randomize execution time
+    # Initialize data model handler object
+    bachdata = data.bachdata()
+    # Scrape
+    scraped = wikipedia.scrape('bachelor')
     time.sleep(random.uniform(3,8))
-    if ds == 1:
-        resp = wikipedia.scrape('bachelor')
-    elif ds == 2:
-        resp = wikipedia.scrape('bachelorette')
-    else:
-        print(f'Mayday! Cannot scrape data set {ds} with scraper "wikipedia"')
-        return []
+    scraped += wikipedia.scrape('bachelorette')
     # Clean Wikipedia references from key-value pairs
-    resp = remove_wikipedia_refs(resp)
+    scraped = remove_wikipedia_refs(scraped)
+    # Prepare data for database
+    docs = []
+    docs += [bachdata.dict_to_doc(1, item) for item in scraped]
     # Add documents to ds1 table
-    bachdb.insert_docs(f'ds{ds}', resp)
+    bachdb.insert_docs('ds1', docs)
 
 '''
-Data Sets 3 and 4
+Data Sets 2.1 and 2.2
 Collect general information about all contestants from a given season or all seasons of The Bachelor or The Bachelorette
 https://bachelor-nation.fandom.com/wiki/The_Bachelor_(Season_1)
 https://bachelor-nation.fandom.com/wiki/The_Bachelorette_(Season_1)
 '''
-def scrape34(ds, season):
+def scrape2(show, season):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
-    # Assume the execution of multiple requests, randomize execution time
+    # Initialize data model handler object
+    bachdata = data.bachdata()
+    # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
-    if ds == 3:
-        resp = bachelornation.scrape_season('bachelor', season)
-    elif ds == 4:
-        resp = bachelornation.scrape_season('bachelorette', season)
-    else:
-        print(f'Mayday! Cannot scrape data set {ds} with scraper "bacahelornation"')
-        return []
+    # Scrape
+    if show == 0:
+        scraped = bachelornation.scrape_season('bachelor', season)
+    elif show == 1:
+        scraped = bachelornation.scrape_season('bachelorette', season)
     # Continue if response is not empty
-    if len(resp) > 0:
-        # Add documents to ds3 table
-        bachdb.insert_docs(f'ds{ds}', resp)
+    if len(scraped) > 0:
+        # Prepare data for database
+        docs = []
+        docs += [bachdata.dict_to_doc(2, item) for item in scraped]
+        # Add documents to ds2 table
+        bachdb.insert_docs('ds2', docs)
 
 '''
-Data Set 5
+Data Set 3
 Collect photos and additional physical information of one Bachelor/Bachelorette cast member or all Bachelor/Bachelorette cast members
 https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
-def scrape5(contestant):
+def scrape3(contestant):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
-    # Assume the execution of multiple requests, randomize execution time
+    # Initialize data model handler object
+    bachdata = data.bachdata()
+    # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
-    resp = bachelornation.scrape_contestant(contestant)
+    # Scrape
+    scraped = bachelornation.scrape_contestant(contestant)
     # Continue if response is not empty
-    if len(resp) > 0:
-        # Add documents to ds5 table
-        bachdb.insert_doc('ds5', resp)
+    if len(scraped) > 0:
+        # Prepare data for database
+        doc = bachdata.dict_to_doc(3, scraped)
+        # Add documents to ds3 table
+        bachdb.insert_doc('ds3', doc)
 
-def getremote(ds, season, contestant):
-    if ds == 1 or ds == 2:
-        resp = scrape12(ds)
-    elif ds == 3 or ds == 4:
+'''
+Collection Source Handlers
+'''
+def getremote(ds, show, season, contestant):
+    if ds == 1:
+        scrape1()
+    elif ds == 2:
         if season:
-            scrape34(ds, season)
-    elif ds == 5:
+            scrape2(show, season)
+    elif ds == 3:
         if contestant:
-            scrape5(contestant)
+            scrape3(contestant)
 
 def getlocal(ds):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
+    # Initialize data model handler object
+    bachdata = data.bachdata()
+    # Scrape
     # Validate existence of file
     if os.path.exists(os.path.join(PATH_TO_VOLUME), f'raw{ds}.json'):
         # Read local file in from ./local/
         with open(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json'), 'r') as injson:
-            data = json.load(injson)
+            raw_data = json.load(injson)
         # Add documents in batch to database
-        bachdb.insert_docs(f'ds{ds}', data)
+        bachdb.insert_docs(f'ds{ds}', raw_data)
     else:
         print(f'Mayday! No input file ./local/raw{ds}.json found')
 
+'''
+Main
+'''
 def main():
     # Retrieve args
     parser = argparse.ArgumentParser(description='Process some integers.')
@@ -140,11 +158,13 @@ def main():
 
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
+    # Initialize data model handler object
+    bachdata = data.bachdata()
 
     # Drop and create new data source tables, if applicable
     if args.overwrite:
-        for dataset in args.dataset:
-            bachdb.create_table(f'ds{dataset}', drop_existing=True)
+        for ds in args.dataset:
+            bachdb.create_table(f'ds{ds}', bachdata.get_sql_table_values(ds), drop_existing=True)
 
     # If source is set to local, read data in from files located in ./local/
     if args.source == 'local':
@@ -155,40 +175,41 @@ def main():
         # Prepare params for multiprocessing
         params = []
         for ds in args.dataset:
-            # Data sets 1 and 2
-            if ds == 1 or ds == 2:
-                params.append((ds, None, None))
-            # Data sets 3 and 4
-            elif ds == 3 or ds == 4:
-                # If no seasons are given by user...
-                if len(args.season) == 0:
-                    # Retrieve all seasons from database
-                    max_season = bachdb.get_max_val(f'ds{ds-2}','season')
-                    if max_season > 0:
-                        seasons = list(range(1, max_season+1))
-                    # If no data was retrieved, alert the user
+            # Data sets 1.1 and 1.2
+            if ds == 1:
+                params.append((ds, None, None, None))
+            # Data sets 2.1 and 2.2
+            elif ds == 2:
+                for show in [0, 1]:
+                    seasons = []
+                    # If no seasons are given by user...
+                    if len(args.season) == 0:
+                        # Retrieve all seasons from database
+                        max_season = bachdb.get_max_val('ds1','season',filters=[{'key':'show','operator':'==','comparison':show}])
+                        if max_season > 0:
+                            seasons = list(range(1, max_season+1))
+                        # If no data was retrieved, alert the user
+                        else:
+                            print('Mayday! Unable to collect data set 2. Has data set 1 been collected and stored?')
+                            seaons = []
                     else:
-                        print(f'Mayday! Unable to collect data set {ds}. Has data set {ds-2} been collected and stored?')
-                        seaons = []
-                else:
-                    seasons = args.season
-                # Iterate over seasons and append to params
-                params += [(ds, season, None) for season in seasons]
-            # Data set 5
-            elif ds == 5:
+                        seasons = args.season
+                    # Iterate over seasons and append to params
+                    params += [(ds, show, season, None) for season in seasons]
+            # Data set 3
+            elif ds == 3:
                 # If no contestants are given by user...
                 if len(args.contestant) == 0:
                     # Retrieve all contestants from database
                     contestants = []
-                    contestants += bachdb.get_docs('ds3', column='profile_url')
-                    contestants += bachdb.get_docs('ds4', column='profile_url')
+                    contestants += bachdb.get_docs('ds2', column='profile_url')
                     # If no data was retrieved, alert the user
                     if len(contestants) == 0:
-                        print(f'Mayday! Unable to collect data set 5. Have data sets 3 or 4 been collected and stored?')
+                        print(f'Mayday! Unable to collect data set 3. Has data set 2 been collected and stored?')
                 else:
                     contestants = args.contestant
                 # Iterate over contestants and append to params
-                params += [(ds, None, contestant) for contestant in contestants]
+                params += [(ds, None, None, contestant) for contestant in contestants]
         # Let 'er rip
         pool_resp = pool.starmap_async(getremote, params)
         pool_resp.get()
