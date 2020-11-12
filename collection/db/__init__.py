@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+'''
+Handle all data storage
+'''
+
 import sqlite3
 
 class bachdb():
@@ -67,7 +71,7 @@ class bachdb():
         return filter_strs
 
     def __prepare_doc(self, table, raw_doc):
-        # Prepare a document according to the data model specific to the given table
+        # Prepare a document according to the data model specific to the given table from a dict object
         doc = [] # Order of values matters
         for keypair in self.tables[table]['keys']:
             key, type = keypair[0], keypair[1]
