@@ -42,12 +42,12 @@ def remove_wikipedia_refs(raw_data):
     return(raw_data)
 
 '''
-Data Sets 1.1 and 1.2
+Scrape data Sets 1.1 and 1.2
 Collect general information from all seasons of The Bachelor or The Bachelorette
 https://en.wikipedia.org/wiki/The_Bachelor_(American_TV_series)
 https://en.wikipedia.org/wiki/The_Bachelorette
 '''
-def scrape1():
+def scrape1(_):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
     # Initialize data model handler object
@@ -64,7 +64,7 @@ def scrape1():
     bachdb.insert_docs('ds1', modeled_data)
 
 '''
-Data Sets 2.1 and 2.2
+Scrape data Sets 2.1 and 2.2
 Collect general information about all contestants from a given season or all seasons of The Bachelor or The Bachelorette
 https://bachelor-nation.fandom.com/wiki/The_Bachelor_(Season_1)
 https://bachelor-nation.fandom.com/wiki/The_Bachelorette_(Season_1)
@@ -89,7 +89,7 @@ def scrape2(show, season):
         bachdb.insert_docs('ds2', modeled_data)
 
 '''
-Data Set 3
+Scrape data Set 3
 Collect photos and additional physical information of one Bachelor/Bachelorette cast member or all Bachelor/Bachelorette cast members
 https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
@@ -111,18 +111,8 @@ def scrape3(contestant):
             bachdb.insert_doc('ds3', modeled_data)
 
 '''
-Collection Source Handlers
+Data set from local file
 '''
-def getremote(ds, show, season, contestant):
-    if ds == 1:
-        scrape1()
-    elif ds == 2:
-        if season:
-            scrape2(show, season)
-    elif ds == 3:
-        if contestant:
-            scrape3(contestant)
-
 def getlocal(ds):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
@@ -172,12 +162,12 @@ def main():
         pool_resp.get()
     # Else, scrape the data from remote sources
     else:
-        # Prepare params for multiprocessing
-        params = []
         for ds in args.dataset:
             # Data sets 1.1 and 1.2
             if ds == 1:
-                params.append((ds, None, None, None))
+                # Multiprocess scraping data set 1
+                pool_resp = pool.map_async(scrape1, [None])
+                pool_resp.get()
             # Data sets 2.1 and 2.2
             elif ds == 2:
                 for show in [0, 1]:
@@ -194,8 +184,9 @@ def main():
                             seaons = []
                     else:
                         seasons = args.season
-                    # Iterate over seasons and append to params
-                    params += [(ds, show, season, None) for season in seasons]
+                    # Multiprocess scraping data set 2
+                    pool_resp = pool.starmap_async(scrape2, [(show, season) for season in seasons])
+                    pool_resp.get()
             # Data set 3
             elif ds == 3:
                 # If no contestants are given by user...
@@ -207,11 +198,9 @@ def main():
                         print(f'Mayday! Unable to collect data set 3. Has data set 2 been collected and stored?')
                 else:
                     contestants = args.contestant
-                # Iterate over contestants and append to params
-                params += [(ds, None, None, contestant) for contestant in contestants]
-        # Let 'er rip
-        pool_resp = pool.starmap_async(getremote, params)
-        pool_resp.get()
+                # Multiprocess scraping data set 3
+                pool_resp = pool.map_async(scrape3, contestants)
+                pool_resp.get()
 
 if __name__ == '__main__':
     main()
