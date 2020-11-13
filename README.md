@@ -16,62 +16,7 @@ Compare the features and place (the number of episodes the contestant was on the
    2. Data about The Bachelorette seasons
 3. Data about The Bachelor and The Bachelorette contestants
 4. Instagram data from contestants
-
-## Collection
-
-Collect data sets, facilitate the modeling of raw data, and facilitate the insertion of modeled data into data storage (SQL database).
-
-### How to Run
-
-Build the docker container:
-```
-docker build collection/ --tag bach
-```
-
-#### Arguments:
-
-* set: Required. An integer associated with the desired data set to be collected. This can be a list of integers.
-* source: Optional. Default: "remote". The location from where to collect the data for the data set(s) -- local or remote. (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)
-* season: Optional. Default: all seasons (via data sets 1.1 and 1.2). An integer or list of integers associated with a desired season to collect data on. Only applicable with data set 2.
-* contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette or the URL of a contestant's profile page on the [Bachelor Nation Fandom Wiki](https://bachelor-nation.fandom.com). Only applicable with data set 3.
-* overwrite: Optional. Default: False. Overwrite any previously saved information from a data set in the database (dump and create a new table). Applicable with all data sets.
-
-#### Examples:
-
-Collect all available data for all data sets:
-```
-docker run --volume $(pwd):/home/ bach collect.py 1 2 3
-```
-
-Collect data from The Bachelor/Bachelorette season 14:
-```
-docker run --volume $(pwd):/home/ bach collect.py 2 --season 14
-```
-
-Collect data about The Bachelorette contestant Dale Moss:
-```
-docker run --volume $(pwd):/home/ bach collect.py 3 --contestant dale_moss
-```
-
-Collect data about The Bachelor contestant Cassie Randolph:
-```
-docker run --volume $(pwd):/home/ bach collect.py 3 --contestant "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
-```
-
-Collect data from all contestants from all seasons of The Bachelor/Bachelorette and source the data from a local location (./local/raw2.json):
-```
-docker run --volume $(pwd):/home/ bach collect.py 2 --source local
-```
-
-Collect all available data for data sets 1 and 2 and overwrite any old data from these data sets (drop and create new ds1 and ds2 tables) in the database:
-```
-docker run --volume $(pwd):/home/ bach collect.py 1 2 --overwrite
-```
-
-Collect all available data for data sets 1 and 2, collection available data from The Bachelor/Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, source the data from remote locations, and overwrite any old data in the pertinent database tables (drop and create new ds1, ds2, and ds3 tables):
-```
-docker run --volume $(pwd):/home/ bach collect.py 1 2 3 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote --overwrite
-```
+5. Granular contestant data compiled from "transformed" data from the other data sets, including measured physical features and quantified "overall attractiveness" from known algorithms
 
 ## Data Models and Data Storage
 
@@ -123,6 +68,21 @@ Data set 3:
 }
 ```
 
+Data set 4:
+```
+{
+  TBD
+}
+```
+
+Data set 5:
+```
+{
+  'name': '', # '' for null
+  'face_photo': '' # '' for null
+}
+```
+
 #### Methods
 
 get_sql_table_values(ds)
@@ -138,7 +98,103 @@ Data is stored in a SQL database. The structure of this database, as defined by 
 Placeholder for database diagram (including relationships)
 ```
 
-### Analysis
+## Collection
+
+Collect data sets, facilitate the modeling of raw data, and facilitate the insertion of modeled data into data storage (SQL database).
+
+### How to Run
+
+Build the docker container:
+```
+docker build collection/ --tag bach
+```
+
+#### Arguments:
+
+* set: Required. An integer associated with the desired data set to be collected. This can be a list of integers.
+* source: Optional. Default: "remote". The location from where to collect the data for the data set(s) -- local or remote. (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)
+* season: Optional. Default: all seasons (via data sets 1.1 and 1.2). An integer or list of integers associated with a desired season to collect data on. Only applicable with data set 2.
+* contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette or the URL of a contestant's profile page on the [Bachelor Nation Fandom Wiki](https://bachelor-nation.fandom.com). Only applicable with data set 3.
+* overwrite: Optional. Default: False. Overwrite any previously saved information from a data set in the database (dump and create a new table). Applicable with all data sets.
+
+#### Examples:
+
+Collect all available data for all data sets overwrite any old data from these data sets (drop and create new ds1, ds2, and ds3 tables) in the database:
+```
+docker run --volume $(pwd):/home/ bach collect.py 1 2 3 --overwrite
+```
+
+Collect data from The Bachelor/Bachelorette season 14:
+```
+docker run --volume $(pwd):/home/ bach collect.py 2 --season 14
+```
+
+Collect data about The Bachelorette contestant Dale Moss:
+```
+docker run --volume $(pwd):/home/ bach collect.py 3 --contestant dale_moss
+```
+
+Collect data about The Bachelor contestant Cassie Randolph:
+```
+docker run --volume $(pwd):/home/ bach collect.py 3 --contestant "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
+```
+
+Collect data from all contestants from all seasons of The Bachelor/Bachelorette and source the data from a local location (./local/raw2.json):
+```
+docker run --volume $(pwd):/home/ bach collect.py 2 --source local
+```
+
+Collect all available data for data sets 1 and 2 and overwrite any old data from these data sets (drop and create new ds1 and ds2 tables) in the database:
+```
+docker run --volume $(pwd):/home/ bach collect.py 1 2 --overwrite
+```
+
+Collect all available data for data sets 1 and 2, collection available data from The Bachelor/Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, source the data from remote locations, and overwrite any old data in the pertinent database tables (drop and create new ds1, ds2, and ds3 tables):
+```
+docker run --volume $(pwd):/home/ bach collect.py 1 2 3 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote --overwrite
+```
+
+## Transformation
+
+Create a fifth data by applying transformation methods to data from the other data sets. This fifth data set will contain more granular data of each candidate and will be the data set primarily referenced during analysis.
+
+### Transformations
+
+crop_face(b64photo)
+
+eval_rule_of_thirds(b64face)
+
+eval_rule_of_fifths(b64face)
+
+eval_golden_ratio(b64face)
+
+eval_feature_sizes(b64face)
+
+### How to Run
+
+Build the docker container:
+```
+docker build collection/ --tag bach
+```
+
+#### Arguments:
+
+* contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette.
+* overwrite: Optional. Default: False. Overwrite any previously saved information from a data set in the database (dump and create a new table). Applicable with all data sets.
+
+#### Examples:
+
+Create data set 5 by transforming data from the other data sets and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+```
+docker run --volume $(pwd):/home/ bach transform.py --overwrite
+```
+
+Transforming data from the other data sets for The Bachelorette contestant Dale Moss and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+```
+docker run --volume $(pwd):/home/ bach transform.py --contestant dale_moss --overwrite
+```
+
+## Analysis
 
 To-do
 
