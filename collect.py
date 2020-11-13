@@ -85,7 +85,7 @@ def scrape2(show, season):
     if len(scraped) > 0:
         # Model the raw data
         modeled_data = bachdata.model_many(2, scraped)
-        # Add the modeled data to ds1 table
+        # Add the modeled data to ds2 table
         bachdb.insert_docs('ds2', modeled_data)
 
 '''
@@ -106,7 +106,7 @@ def scrape3(contestant):
     if len(scraped) > 0:
         # Model the raw data
         modeled_data = bachdata.model_one(3, scraped)
-        # Add the modeled data to ds1 table
+        # Add the modeled data to ds3 table
         if modeled_data != {}:
             bachdb.insert_doc('ds3', modeled_data)
 
