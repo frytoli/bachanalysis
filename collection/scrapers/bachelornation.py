@@ -84,6 +84,8 @@ def scrape_season(show, season):
                         df['profile_url'] = [f'''https://bachelor-nation.fandom.com{a['href']}''' for a in table.findAll('a')]
                         # Add season column
                         df['season'] = [season for i in range(len(df.index))]
+                        # Add show column
+                        df['show'] = [show for i in range(len(df.index))]
                         # Convert dataframe to dict
                         contestants = [record for record in df.to_dict(orient='records')]
                         return contestants
