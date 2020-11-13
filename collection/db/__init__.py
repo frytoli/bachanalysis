@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 '''
-Handle all data storage
+Handle data storage in SQL database
+* Create tables from an input list of tuple values
+* Insert given json data into a given table
+* Retreive data from a given table and return as a list of tuples
+* Retreive max value of a given column in a table and return as an integer
 '''
 
 import sqlite3

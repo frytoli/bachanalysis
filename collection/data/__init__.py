@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-* Convert input data into json data model
+* Convert raw input json data into modeled json data
 '''
 
 import json
