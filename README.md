@@ -8,12 +8,12 @@ Compare the features and place (the number of episodes the contestant was on the
 
 ## Data sets:
 
-1.
-  1.1. Data about The Bachelor
-  1.2. Data about The Bachelorette shows
-2.
-  1.2. Data about The Bachelor seasons
-  1.2. Data about The Bachelorette seasons
+1. General data about the shows
+  1. Data about The Bachelor
+  2. Data about The Bachelorette shows
+2. General data about the shows' seasons
+  1. Data about The Bachelor seasons
+  2. Data about The Bachelorette seasons
 3. Data about The Bachelor and The Bachelorette contestants
 4. Instagram data from contestants
 
@@ -78,40 +78,48 @@ docker run --volume $(pwd):/home/ bach collect.py 1 2 3 --season 8 9 10 --contes
 ### Data Class
 
 The data is modeled as JSON data. The models for each data set (including subsets) are as follows:
+
+Data sets 1.1 and 1.2:
 ```
 {
-  1 : {
-      'season': 0, # -1 for null
-      'original_run': '', # '' for null
-      'suitor': '', # '' for null
-      'winner': '', # '' for null
-      'runnersup': '', # '' for null
-      'proposal': 0, # 0 for no, 1 for yes, -1 for null
-      'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
-      'still_together': 0, # 0 for no, 1 for yes, -1 for null
-      'relationship_notes':'' # '' for null
-  },
-  2: {
-      'name': '', # '' for null
-      'age': 0, # -1 for null
-      'hometown': '', # '' for null
-      'occupation': '', # '' for null
-      'eliminated': '', # '' for null
-      'season': 0, # -1 for null
-      'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
-      'profile_url': '',
-      'place': 0 # -1 for null
-  },
-  3: {
-      'name': '', # '' for null
-      'photo': '', # '' for null
-      'born': '', # '' for null
-      'hometown': '', # '' for null
-      'occupation': '', # '' for null
-      'seasons': '', # '' for null
-      'social_media': '', # '' for null
-      'height': '' # '' for null
-  }
+  'season': 0, # -1 for null
+  'original_run': '', # '' for null
+  'suitor': '', # '' for null
+  'winner': '', # '' for null
+  'runnersup': '', # '' for null
+  'proposal': 0, # 0 for no, 1 for yes, -1 for null
+  'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
+  'still_together': 0, # 0 for no, 1 for yes, -1 for null
+  'relationship_notes':'' # '' for null
+}
+```
+
+Data sets 2.1 and 2.2:
+```
+{
+  'name': '', # '' for null
+  'age': 0, # -1 for null
+  'hometown': '', # '' for null
+  'occupation': '', # '' for null
+  'eliminated': '', # '' for null
+  'season': 0, # -1 for null
+  'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
+  'profile_url': '',
+  'place': 0 # -1 for null
+}
+```
+
+Data set 3:
+```
+{
+  'name': '', # '' for null
+  'photo': '', # '' for null
+  'born': '', # '' for null
+  'hometown': '', # '' for null
+  'occupation': '', # '' for null
+  'seasons': '', # '' for null
+  'social_media': '', # '' for null
+  'height': '' # '' for null
 }
 ```
 
