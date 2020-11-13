@@ -40,6 +40,9 @@ class bachdb():
             return []
         return filter_strs
 
+    '''
+    Create a table from a list of tuples of values
+    '''
     def create_table(self, table, values, drop_existing=False):
         if drop_existing:
             # Drop the table if it exists; create a new one
@@ -47,72 +50,81 @@ class bachdb():
         try:
             # Execute table creation with given values (nested list)
             self.cur.execute(f'''CREATE TABLE IF NOT EXISTS {table} ({', '.join([f'{value[0]} {value[1]}' for value in values])})''')
-        except sqlite3.OperationalError as e:
+        except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
             print(f'Sqlite3 Error when creating table {table}: {e}')
         # Commit and close connection
         self.conn.commit()
         self.conn.close
 
-    def insert_doc(self, table, doc):
+    '''
+    Take a json object and insert it into the database
+    '''
+    def insert_doc(self, table, data):
         try:
-            self.cur.execute(f'''INSERT INTO {table} VALUES ({','.join(['?' for i in range(len(doc))])})''', doc)
-        except sqlite3.OperationalError as e:
+            self.cur.execute(f'''INSERT INTO {table} VALUES ({','.join(['?' for i in range(len(data))])})''', list(data.values()))
+        except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
             print(f'ERROR with 1 document: {e}')
         # Commit and close connection
         self.conn.commit()
         self.conn.close
 
-    def insert_docs(self, table, docs):
-        if len(docs) > 0:
+    '''
+    Take a list of json objects and insert it into the database
+    '''
+    def insert_docs(self, table, datas):
+        if len(datas) > 0:
             try:
-                self.cur.executemany(f'''INSERT INTO {table} VALUES ({','.join(['?' for i in range(len(docs[0]))])})''', docs)
-            except sqlite3.OperationalError as e:
-                print(f'ERROR with {len(docs)} documents: {e}')
+                self.cur.executemany(f'''INSERT INTO {table} VALUES ({','.join(['?' for i in range(len(datas[0]))])})''', [list(data.values()) for data in datas])
+            except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
+                print(f'ERROR with {len(datas)} documents: {e}')
             # Commit and close connection
             self.conn.commit()
             self.conn.close
 
+    '''
+    Query and return documents from a given table
+    '''
     def get_docs(self, table, column='*', filters=[]):
-        if filters == {}:
-            try:
-                self.cur.execute(f'SELECT {column} FROM {table}')
-            except sqlite3.OperationalError as e:
-                print(f'Sqlite3 error when selecting * from {table}: {e}')
-                docs = []
-        else:
+        if len(filters) > 0:
             # Prepare filter strings
             filter_strs = self.__prepare_filterstr(table, filters)
             if filter_strs != []:
                 try:
                     self.cur.execute(f'''SELECT {column} FROM {table} WHERE {' AND '.join(filter_strs)}''')
-                except sqlite3.OperationalError as e:
+                except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
                     print(f'''Sqlite3 error when selecting max({column}) from table {table} where f{' AND '.join(filter_strs)}: {e}''')
                     docs = []
-        if self.cur.fetchall():
-            docs = self.cur.fetchall()
         else:
-            docs = []
+            try:
+                self.cur.execute(f'SELECT {column} FROM {table}')
+            except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
+                print(f'Sqlite3 error when selecting * from {table}: {e}')
+                docs = []
+        docs = self.cur.fetchall()
         # Commit and close connection
         self.conn.commit()
         self.conn.close
         return docs
 
+    '''
+    Query and return a max value of a column in a given table
+    '''
     def get_max_val(self, table, column, filters=[]):
-        if filters == {}:
-            try:
-                self.cur.execute(f'SELECT max({column}) FROM {table}')
-            except sqlite3.OperationalError as e:
-                print(f'Sqlite3 error when selecting max{column} from {table}: {e}')
-                max = 0
-        else:
+        if len(filters) > 0:
             # Prepare filter strings
             filter_strs = self.__prepare_filterstr(table, filters)
             if len(filter_strs) > 0:
                 try:
                     self.cur.execute(f'''SELECT max({column}) FROM {table} WHERE {' AND '.join(filter_strs)}''')
-                except sqlite3.OperationalError as e:
+                except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
                     print(f'''Sqlite3 error when selecting max({column}) from table {table} where f{' AND '.join(filter_strs)}: {e}''')
                     max = 0
+        else:
+            try:
+                self.cur.execute(f'SELECT max({column}) FROM {table}')
+            except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
+                print(f'Sqlite3 error when selecting max{column} from {table}: {e}')
+                max = 0
         max = self.cur.fetchone()[0]
         if not max:
             max = 0

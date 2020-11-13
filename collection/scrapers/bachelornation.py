@@ -128,10 +128,10 @@ def scrape_contestant(contestant):
         # Parse out additional categorized info
         infos = soup.findAll('div', class_='pi-item pi-data pi-item-spacing pi-border-color')
         for pair in infos:
-            key = pair.find('h3').text.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()
+            key = pair.find('h3').text.strip()
             value = pair.find('div')
             # If key is social_media, retrieve and save all social media links
-            if key == 'social_media':
+            if key == 'Social Media':
                 value = f'''{', '.join([a['href'] for a in value.findAll('a')])}'''
             # Otherwise, save the text
             else:

@@ -4,44 +4,44 @@
 * Convert input data into json data model
 '''
 
-import pandas as pd
 import json
+import math
 
 class bachdata():
     def __init__(self):
         # Data model references for all data sets
         self.models = {
             1: {
-                'season': 0,
-                'original_run': '',
-                'suitor': '',
-                'winner': '',
-                'runnersup': '',
-                'proposal': 0, # 0 for no, 1 for yes
-                'show': 0, # 0 for Bachelor, 1 for Bachelorette
-                'still_together': 0, # 0 for no, 1 for yes
-                'relationship_notes':''
+                'season': 0, # -1 for null
+                'original_run': '', # '' for null
+                'suitor': '', # '' for null
+                'winner': '', # '' for null
+                'runnersup': '', # '' for null
+                'proposal': 0, # 0 for no, 1 for yes, -1 for null
+                'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
+                'still_together': 0, # 0 for no, 1 for yes, -1 for null
+                'relationship_notes':'' # '' for null
             },
             2: {
-                'name': '',
-                'age': 0,
-                'hometown': '',
-                'occupation': '',
-                'eliminated': '',
-                'season': 0,
-                'show': 0, # 0 for Bachelor, 1 for Bachelorette
+                'name': '', # '' for null
+                'age': 0, # -1 for null
+                'hometown': '', # '' for null
+                'occupation': '', # '' for null
+                'eliminated': '', # '' for null
+                'season': 0, # -1 for null
+                'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
                 'profile_url': '',
-                'place': 0
+                'place': 0 # -1 for null
             },
             3: {
-                'name': '',
-                'photo': '',
-                'born': '',
-                'hometown': '',
-                'occupation': '',
-                'seasons': '',
-                'social_media': '',
-                'height': ''
+                'name': '', # '' for null
+                'photo': '', # '' for null
+                'born': '', # '' for null
+                'hometown': '', # '' for null
+                'occupation': '', # '' for null
+                'seasons': '', # '' for null
+                'social_media': '', # '' for null
+                'height': '' # '' for null
             }
         }
 
@@ -55,78 +55,77 @@ class bachdata():
                 sql_values.append([key, 'integer'])
         return sql_values
 
-    # Convert dict (json) data into a document or list of documents ready to be inserted into the database
-    def dict_to_doc(self, ds, data):
-        doc = []
+    # Model provided json (dict) data
+    def model_one(self, ds, data):
+        modeled_data = {}
         # Ensure the data is json
         if type(data) == dict:
+            # Normalize keys in data
+            data = {key.replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower():value for key, value in data.items()}
             for key, value in self.models[ds].items():
                 if key in data:
                     # Handle data specific data manipulations
                     if key == 'show':
-                        if 'bachelorette' in data[key].lower():
-                            doc.append(1)
-                        elif 'bachelor' in data[key].lower():
-                            doc.append(0)
+                        if type(data[key]) == str:
+                            if 'bachelorette' in data[key].lower():
+                                modeled_data[key] = 1
+                            elif 'bachelor' in data[key].lower():
+                                modeled_data[key] = 0
+                            else:
+                                print(f'Value {data[key]} was not able to be evaluated as The Bachelor or The Bachelorette')
+                                modeled_data[key] = -1
                         else:
-                            print(f'Value {data[key]} was not able to be evaluated as The Bachelor or The Bachelorette')
-                            doc.append(-1)
+                            if math.isnan(data[key]):
+                                modeled_data[key] = -1
+                            else:
+                                print(f'Value {data[key]} was not able to be evaluated as The Bachelor or The Bachelorette')
+                                modeled_data[key] = -1
                     elif key == 'proposal' or key == 'still_together':
-                        if not type(data[key]) == str:
-                            print(f'Value {data[key]} was not able to be evaluated as yes or no')
-                            doc.append(-1)
-                        elif 'yes' in data[key].lower():
-                            doc.append(1)
-                        elif 'no' in data[key].lower():
-                            doc.append(0)
+                        if type(data[key]) == str:
+                            if 'yes' in data[key].lower():
+                                modeled_data[key] = 1
+                            elif 'no' in data[key].lower():
+                                modeled_data[key] = 0
+                            else:
+                                print(f'Value {data[key]} was not able to be evaluated as yes or no')
+                                modeled_data[key] = -1
                         else:
-                            print(f'Value {data[key]} was not able to be evaluated as yes or no')
-                            doc.append(-1)
+                            if math.isnan(data[key]):
+                                modeled_data[key] = -1
+                            else:
+                                print(f'Value {data[key]} was not able to be evaluated as yes or no')
+                                modeled_data[key] = -1
                     else:
-                        try:
-                            doc.append(type(value)(data[key]))
-                        except ValueError:
+                        if type(data[key]) == float and math.isnan(data[key]):
                             if type(value) == int:
-                                doc.append(-1)
-                                print(f'Value {data[key]} was not able to be cast to integer')
+                                modeled_data[key] = -1
                             elif type(value) == str:
-                                doc.append('')
-                                print(f'Value {data[key]} was not able to be cast to string')
+                                modeled_data[key] = ''
+                        else:
+                            try:
+                                modeled_data[key] = type(value)(data[key])
+                            except ValueError:
+                                if type(value) == int:
+                                    modeled_data[key] = -1
+                                    print(f'Value {data[key]} was not able to be cast to integer')
+                                elif type(value) == str:
+                                    modeled_data[key] = ''
+                                    print(f'Value {data[key]} was not able to be cast to string')
                 else:
-                    doc.append(value)
+                    modeled_data[key] = value
         else:
-            print('Mayday! Only dict (json) data is permitted')
-        return doc
+            print('Mayday! Only a json object is permitted')
+            return {}
+        return modeled_data
 
-    # Convert database documents (list of tuples) to dict (json)
-    def doc_to_dict(self, ds, doc):
-        data = {}
-        i = 0
-        for key, value in self.models[ds].items():
-            if len(doc) > i:
-                try:
-                    data[key] = type(value)(doc[i])
-                except ValueError:
-                    if type(value) == int:
-                        data[key] = -1
-                        print(f'Value {doc[i]} was not able to be cast to integer')
-                    elif type(value) == str:
-                        data[key] = ''
-                        print(f'Value {doc[i]} was not able to be cast to string')
-                i += 1
-            else:
-                if type(value) == int:
-                    data[key] = -1
-                    print(f'Nov value for {key} was found in the given document')
-                elif type(value) == str:
-                    data[key] = ''
-                    print(f'Nov value for {key} was found in the given document')
-        return data
-
-    def csv_to_db(self):
-        # Prepare csv data to be inserted into bachelor database
-        pass
-
-    def db_to_csv(self): # Maybe
-        # Export database data as csv
-        pass
+    # Model provided list of json (dict) objects data
+    def model_many(self, ds, datas):
+        # Ensure the data is json
+        if type(datas) == list and len(datas) > 0 and type(datas[0]) == dict:
+            # Model the data
+            modeled_datas = [self.model_one(ds, data) for data in datas]
+            return modeled_datas
+        else:
+            print('Mayday! Only a list of json objects are permitted')
+            return []
+        return modeled_datas

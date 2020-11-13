@@ -31,31 +31,31 @@ Compare the physical features and place (the number of episodes the contestant w
 Collect all available data for all data sets:
 ```
 docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 1 2 3 4 5
+docker run --volume $(pwd):/home/ collection 1 2 3
 ```
 
-Collect data from The Bachelor season 14:
+Collect data from The Bachelor/Bachelorette season 14:
 ```
 docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 3 --season 14
+docker run --volume $(pwd):/home/ collection 2 --season 14
 ```
 
 Collect data about The Bachelorette contestant Dale Moss:
 ```
 docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 5 --contestant dale_moss
+docker run --volume $(pwd):/home/ collection 3 --contestant dale_moss
 ```
 
 Collect data about The Bachelor contestant Cassie Randolph:
 ```
 docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 5 --contestant "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
+docker run --volume $(pwd):/home/ collection 3 --contestant "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
 ```
 
-Collect data from all contestants from all seasons of the Bachelor and write the data to a json file located in ./local/ (data is still inserted into the database):
+Collect data from all contestants from all seasons of The Bachelor/Bachelorette and write the data to a json file located in ./local/ (data is still inserted into the database):
 ```
 docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 3 --file
+docker run --volume $(pwd):/home/ collection 2 --file
 ```
 
 Collect all available data for data sets 1 and 2 and overwrite any old data from these data sets (drop and create new ds1 and ds2 tables) in the database:

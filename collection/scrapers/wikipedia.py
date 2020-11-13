@@ -37,11 +37,9 @@ def scrape(show):
     # Convert html table to dataframe
     df = pd.read_html(str(table), header=0)[0]
     # Rename '#' column to 'Season'
-    df = df.rename(columns={'#': 'season'})
+    df = df.rename(columns={'#': 'Season'})
     # Add 'Show' column
-    df['show'] = [show for i in range(len(df.index))]
-    # Normalized and remove any special characters from column names
-    df = df.rename(columns={col: f'''{col.strip().replace('(','').replace(')','').replace(':','').replace('-','').replace(' ','_').lower()}''' for col in df.columns})
+    df['Show'] = [show for i in range(len(df.index))]
     # Convert dataframe to dict
     data = [record for record in df.to_dict(orient='records')]
     return data
