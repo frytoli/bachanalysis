@@ -129,9 +129,11 @@ class bachdb():
             except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
                 print(f'Sqlite3 error when selecting max{column} from {table}: {e}')
                 max = 0
-        max = self.cur.fetchone()[0]
-        if not max:
+        max_resp = self.cur.fetchone()
+        if not max_resp:
             max = 0
+        else:
+            max = max_resp[0]
         # Commit and close connection
         self.conn.commit()
         self.conn.close
