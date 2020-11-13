@@ -125,6 +125,9 @@ class bachdata():
         else:
             print('Mayday! Only a json object is permitted')
             return {}
+        # If the resulting json object (dict) only contains null values, return an empty dict
+        if modeled_data == self.models[ds]:
+            modeled_data = {}
         return modeled_data
 
     # Model provided list of json (dict) objects data
@@ -132,7 +135,12 @@ class bachdata():
         # Ensure the data is json
         if type(datas) == list and len(datas) > 0 and type(datas[0]) == dict:
             # Model the data
-            modeled_datas = [self.model_one(ds, data) for data in datas]
+            modeled_datas = []
+            for data in datas:
+                modeled_data = self.model_one(ds, data)
+                # Only save objects that are not empty
+                if modeled_data != {}:
+                    modeled_datas.append(modeled_data)
             return modeled_datas
         else:
             print('Mayday! Only a list of json objects are permitted')
