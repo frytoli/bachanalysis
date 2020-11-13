@@ -56,13 +56,15 @@ def scrape_season(show, season):
                         profile_url = f'''https://bachelor-nation.fandom.com{name['href']}'''
                         values = re.split(r'<br\/{0,1}>', str(caption))
                         if len(values) == 5:
+                            # Compile html tag removal regex pattern
+                            tag_pattern = re.compile(r'</[a-z]{1,5}>')
                             contestants.append({
-                                keys[0]: name.text,
-                                keys[1]: int(values[1].strip()),
-                                keys[2]: values[2].strip(),
-                                keys[3]: values[3].strip(),
-                                keys[4]: values[4].strip(),
-                                'profile_url': profile_url,
+                                keys[0]: tag_pattern.sub('', name.text),
+                                keys[1]: int(tag_pattern.sub('', values[1].strip())),
+                                keys[2]: tag_pattern.sub('', values[2].strip()),
+                                keys[3]: tag_pattern.sub('', values[3].strip()),
+                                keys[4]: tag_pattern.sub('', values[4].strip()),
+                                'profile_url': tag_pattern.sub('', profile_url),
                                 'season': season,
                                 'show': show
                             })
@@ -133,7 +135,7 @@ def scrape_contestant(contestant):
             key = pair.find('h3').text.strip()
             value = pair.find('div')
             # If key is social_media, retrieve and save all social media links
-            if key == 'Social Media':
+            if key.lower() == 'social media':
                 value = f'''{', '.join([a['href'] for a in value.findAll('a')])}'''
             # Otherwise, save the text
             else:
@@ -144,6 +146,7 @@ def scrape_contestant(contestant):
         ps = content.findAll('p')
         for p in ps:
             b = p.find('b')
+            i = p.find('i')
             if b and b.text.strip().lower() == 'height':
-                data['height'] = p.text.lower().replace(b.text.strip().lower(),'').strip()
+                data['height'] = p.text.lower().replace(b.text.strip().lower(),'').replace(i.text.strip().lower(),'').strip()
     return data

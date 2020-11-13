@@ -95,6 +95,15 @@ class bachdata():
                             else:
                                 print(f'Value {data[key]} was not able to be evaluated as yes or no')
                                 modeled_data[key] = -1
+                    elif key == 'eliminated':
+                         if type(data[key]) == float and math.isnan(data[key]):
+                             modeled_data[key] = ''
+                         else:
+                            try:
+                                modeled_data[key] = type(value)(data[key].lower().replace('eliminated in ',''))
+                            except ValueError:
+                                modeled_data[key] = ''
+                                print(f'Value {data[key]} was not able to be cast to string')
                     else:
                         if type(data[key]) == float and math.isnan(data[key]):
                             if type(value) == int:
