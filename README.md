@@ -9,11 +9,11 @@ Compare the features and place (the number of episodes the contestant was on the
 ## Data sets:
 
 1. General data about the shows
-  1. Data about The Bachelor
-  2. Data about The Bachelorette shows
+   1. Data about The Bachelor
+   2. Data about The Bachelorette shows
 2. General data about the shows' seasons
-  1. Data about The Bachelor seasons
-  2. Data about The Bachelorette seasons
+   1. Data about The Bachelor seasons
+   2. Data about The Bachelorette seasons
 3. Data about The Bachelor and The Bachelorette contestants
 4. Instagram data from contestants
 
