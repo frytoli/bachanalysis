@@ -10,7 +10,9 @@ Create a new dataset by
     3. Aggregate relevant data points from all data sets
 '''
 
+from multiprocessing import Pool
 import numpy as np
+import argparse
 import base64
 import data
 import dlib
@@ -44,6 +46,11 @@ def align_face(img):
 Crop a contestant's photo to just their face
 '''
 def crop_face(b64photo):
+    # Initialize sqldb object
+    bachdb = db.bachdb(PATH_TO_DB)
+    # Initialize data model handler object
+    bachdata = data.bachdata()
+
     # Load pre-trained classifier
     face_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml')
     # Read-in dlib shape predictor from http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
@@ -106,15 +113,25 @@ def crop_face(b64photo):
 
     # Encode resized, cropped image as base64 string
     b64face = base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()
-    # Return base64 string
-    return b64face
+
+    # Model the data
+    record = {
+        'name': name,
+        'face_photo': b64face
+    }
+    modeled_record = bachdata.model_one(5, record)
+    # Add the modeled data to ds5 table
+    bachdb.insert_doc('ds5', modeled_record)
 
 def main():
     # Retrieve args
     parser = argparse.ArgumentParser(description='Process contestant data')
-    parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (only applicable with data source 5) (i.e. joelle_fletcher)')
+    parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (i.e. joelle_fletcher)')
     parser.add_argument('--overwrite', dest='overwrite', action='store_true', help='overwrite applicable table(s) in the database')
     args = parser.parse_args()
+
+    # Initialize multiprocessing pool with 5 threads
+    pool = Pool(processes=5)
 
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
@@ -123,24 +140,13 @@ def main():
 
     # Drop and create new data source tables, if applicable
     if args.overwrite:
-        bachdb.create_table('ds5', bachdata.get_sql_table_values(ds), drop_existing=True)
+        bachdb.create_table('ds5', bachdata.get_sql_table_values(5), drop_existing=True)
 
     # Retrieve contestants' names (id) and photos
     contestants = bachdb.get_docs('ds3', column='name, photo')
-    # Iterate over contestants and create the new dataset
-    data = []
-    for contestant in contestants:
-        record = {
-            'name': contestant[0]
-        }
-        # Crop contestant's face
-        record['face_photo'] = crop_face(photo)
-
-    # Model the data
-    modeled_data = bachdata.model_many(5, scraped)
-    # Add the modeled data to ds5 table
-    bachdb.insert_docs('ds5', modeled_data)
-
+    # Multiprocess cropping contestants' faces from their photos
+    pool_resp = pool.starmap_async(crop_face, contestants)
+    pool_resp.get()
 
 if __name__ == '__main__':
     main()
