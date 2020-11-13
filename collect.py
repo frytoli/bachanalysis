@@ -107,7 +107,8 @@ def scrape3(contestant):
         # Model the raw data
         modeled_data = bachdata.model_one(3, scraped)
         # Add the modeled data to ds1 table
-        bachdb.insert_doc('ds3', modeled_data)
+        if modeled_data != {}:
+            bachdb.insert_doc('ds3', modeled_data)
 
 '''
 Collection Source Handlers
