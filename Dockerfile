@@ -40,4 +40,4 @@ RUN pip install --no-dependencies \
 # Set workdir
 WORKDIR /home/
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python"]
