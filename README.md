@@ -1,16 +1,12 @@
-# The Bachelor/Bachelorette Contestant Physical Attribute Analysis
+# The Bachelor/Bachelorette Contestant Feature Analysis
 
 ![](https://media0.giphy.com/media/6wk5cC8J7ZEe8RR75e/giphy.gif)
 
 DSCI-510 Final Project
 
-Compare the physical features and place (the number of episodes the contestant was on the show for) of past contestants of ABC's The Bachelor and The Bachelorette.
+Compare the features and place (the number of episodes the contestant was on the show for) of past contestants of ABC's The Bachelor and The Bachelorette.
 
-## How to Run
-
-### Collection
-
-#### Data set numbers:
+## Data sets:
 
 1.
   1.1. Data about The Bachelor
@@ -19,6 +15,18 @@ Compare the physical features and place (the number of episodes the contestant w
   1.2. Data about The Bachelor seasons
   1.2. Data about The Bachelorette seasons
 3. Data about The Bachelor and The Bachelorette contestants
+4. Instagram data from contestants
+
+## Collection
+
+Collect data sets, facilitate the modeling of raw data, and facilitate the insertion of modeled data into data storage (SQL database).
+
+### How to Run
+
+Build the docker container:
+```
+docker build collection/ --tag bach
+```
 
 #### Arguments:
 
@@ -26,53 +34,107 @@ Compare the physical features and place (the number of episodes the contestant w
 * source: Optional. Default: "remote". The location from where to collect the data for the data set(s) -- local or remote. (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)
 * season: Optional. Default: all seasons (via data sets 1.1 and 1.2). An integer or list of integers associated with a desired season to collect data on. Only applicable with data set 2.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette or the URL of a contestant's profile page on the [Bachelor Nation Fandom Wiki](https://bachelor-nation.fandom.com). Only applicable with data set 3.
-* overwrite: Optional. Overwrite any previously saved information from a data set in the database (dump and create a new table). Applicable with all data sets.
+* overwrite: Optional. Default: False. Overwrite any previously saved information from a data set in the database (dump and create a new table). Applicable with all data sets.
 
 #### Examples:
 
 Collect all available data for all data sets:
 ```
-docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 1 2 3
+docker run --volume $(pwd):/home/ bach collect.py 1 2 3
 ```
 
 Collect data from The Bachelor/Bachelorette season 14:
 ```
-docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 2 --season 14
+docker run --volume $(pwd):/home/ bach collect.py 2 --season 14
 ```
 
 Collect data about The Bachelorette contestant Dale Moss:
 ```
-docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 3 --contestant dale_moss
+docker run --volume $(pwd):/home/ bach collect.py 3 --contestant dale_moss
 ```
 
 Collect data about The Bachelor contestant Cassie Randolph:
 ```
-docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 3 --contestant "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
+docker run --volume $(pwd):/home/ bach collect.py 3 --contestant "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
 ```
 
 Collect data from all contestants from all seasons of The Bachelor/Bachelorette and source the data from a local location (./local/raw2.json):
 ```
-docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 2 --source local
+docker run --volume $(pwd):/home/ bach collect.py 2 --source local
 ```
 
 Collect all available data for data sets 1 and 2 and overwrite any old data from these data sets (drop and create new ds1 and ds2 tables) in the database:
 ```
-docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 1 2 --overwrite
+docker run --volume $(pwd):/home/ bach collect.py 1 2 --overwrite
 ```
 
 Collect all available data for data sets 1 and 2, collection available data from The Bachelor/Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, source the data from remote locations, and overwrite any old data in the pertinent database tables (drop and create new ds1, ds2, and ds3 tables):
 ```
-docker build collection/ --tag collection
-docker run --volume $(pwd):/home/ collection 1 2 3 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote --overwrite
+docker run --volume $(pwd):/home/ bach collect.py 1 2 3 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote --overwrite
 ```
 
-## To-Do
+## Data Models and Data Storage
+
+### Data Class
+
+The data is modeled as JSON data. The models for each data set (including subsets) are as follows:
+```
+{
+  1 : {
+      'season': 0, # -1 for null
+      'original_run': '', # '' for null
+      'suitor': '', # '' for null
+      'winner': '', # '' for null
+      'runnersup': '', # '' for null
+      'proposal': 0, # 0 for no, 1 for yes, -1 for null
+      'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
+      'still_together': 0, # 0 for no, 1 for yes, -1 for null
+      'relationship_notes':'' # '' for null
+  },
+  2: {
+      'name': '', # '' for null
+      'age': 0, # -1 for null
+      'hometown': '', # '' for null
+      'occupation': '', # '' for null
+      'eliminated': '', # '' for null
+      'season': 0, # -1 for null
+      'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
+      'profile_url': '',
+      'place': 0 # -1 for null
+  },
+  3: {
+      'name': '', # '' for null
+      'photo': '', # '' for null
+      'born': '', # '' for null
+      'hometown': '', # '' for null
+      'occupation': '', # '' for null
+      'seasons': '', # '' for null
+      'social_media': '', # '' for null
+      'height': '' # '' for null
+  }
+}
+```
+
+#### Methods
+
+get_sql_table_values(ds)
+
+model_one(ds, data)
+
+model_many(ds, datas)
+
+### DB Class
+
+Data is stored in a SQL database. The structure of this database, as defined by the data model, is as follows:
+```
+Placeholder for database diagram (including relationships)
+```
+
+### Analysis
+
+To-do
+
+## Tasks
 
 ### Project Outline and Data Set Identification
 
