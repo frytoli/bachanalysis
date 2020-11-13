@@ -8,7 +8,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt update && \
-		apt install -y software-properties-common && \
+		apt install -y \
+			build-essential \
+			cmake \
+			ffmpeg \
+			libprotobuf-dev \
+			libsm6 \
+			libxext6 \
+			protobuf-compiler \
+			software-properties-common \
+			wget && \
 		apt dist-upgrade -y
 
 ENV VIRTUAL_ENV=/venv
@@ -24,10 +33,12 @@ RUN pip install --no-dependencies \
 	bs4==0.0.1 \
 	certifi==2020.11.8 \
 	chardet==3.0.4 \
+	dlib==19.21.0 \
 	html5lib==1.1 \
 	idna==2.10 \
 	lxml==4.6.1 \
 	numpy==1.19.4 \
+	opencv-python==4.4.0.46 \
 	pandas==1.1.4 \
 	python-dateutil==2.8.1 \
 	pytz==2020.4 \
@@ -39,5 +50,8 @@ RUN pip install --no-dependencies \
 
 # Set workdir
 WORKDIR /home/
+
+# Download dlib shape predictor
+RUN wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
 
 ENTRYPOINT ["python"]

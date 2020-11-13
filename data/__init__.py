@@ -42,6 +42,13 @@ class bachdata():
                 'seasons': '', # '' for null
                 'social_media': '', # '' for null
                 'height': '' # '' for null
+            },
+            4: {
+                'temp': ''
+            },
+            5: {
+                'name': '',
+                'face_photo': ''
             }
         }
 
