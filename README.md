@@ -79,17 +79,23 @@ Data set 5:
 ```
 {
   'name': '', # '' for null
+  'dlib_landmarks': '', # '' for null
   'face_photo': '' # '' for null
 }
 ```
 
 #### Methods
 
-get_sql_table_values(ds)
+get_sql_table_values(ds): Take-in an integer data set number and output a list of lists of associated database table values and their SQL types.
+```
+>>> d = data.bachdata()
+>>> d.get_sql_table_values(5)
+[['name', 'text'], ['photo', 'text'], ['born', 'text'], ['hometown', 'text'], ['occupation', 'text'], ['seasons', 'text'], ['social_media', 'text'], ['height', 'text']]
+```
 
-model_one(ds, data)
+model_one(ds, data): Take-in an integer data set number and a single raw json (dict) object and return a single json (dict) object modeled for the specified data set
 
-model_many(ds, datas)
+model_many(ds, datas): Take-in an integer data set number and a list of raw json (dict) objects and return a list of json (dict) objects all modeled for the specific data set
 
 ### DB Class
 
@@ -160,7 +166,9 @@ Create a fifth data by applying transformation methods to data from the other da
 
 ### Transformations
 
-crop_face(b64photo)
+process_face(b64photo)
+
+get_face_rotation(img)
 
 eval_rule_of_thirds(b64face)
 
@@ -189,9 +197,9 @@ Create data set 5 by transforming data from the other data sets and overwrite an
 docker run --volume $(pwd):/home/ bach transform.py --overwrite
 ```
 
-Transforming data from the other data sets for The Bachelorette contestant Dale Moss and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+Transforming data from the other data sets for The Bachelorette contestant Jason Tartick and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
 ```
-docker run --volume $(pwd):/home/ bach transform.py --contestant dale_moss --overwrite
+docker run --volume $(pwd):/home/ bach transform.py --contestant jason_tartick --overwrite
 ```
 
 ## Analysis
@@ -209,6 +217,8 @@ To-do
   - [x] Info and place of all Bachelor contestants: https://en.wikipedia.org/wiki/The_Bachelor_(season_1) (enumerate seasons)
   - [x] Info and place of all Bachelorette contestants: https://en.wikipedia.org/wiki/The_Bachelorette_(season_1) (enumerate seasons)
   - [x] Info of all Bachelor/Bachelorette cast members: https://bachelor-nation.fandom.com/wiki/Alex_Michel (enumerate names)
+  - [x] Popularity and additional photos of cast members: https://instagram.com
+  - [x] "Transformed" data from other data sets
 - [ ] Project outline
 
 ### Collect Data
@@ -229,6 +239,12 @@ To-do
   - [x] Overwrite
 - [x] Dockerize
 - [ ] Collect all the datas!
+- [ ] "Transform" the data into a fifth data set
+  - [x] Pre-process contestant photos (face images and dlib landmarks)
+  - [ ] Rule of thirds evaluation
+  - [ ] Rule of fifths evaluation
+  - [ ] Golden ratio evaluation
+  - [ ] Facial feature measurements
 
 ### Model and Store Data
 
@@ -243,6 +259,8 @@ To-do
       - [x] Add 'show' column
       - [x] Add 'season' column
     - [x] Data set 3 (Bachelor Nation)
+    - [ ] Data set 4 (Instagram)
+    - [ ] Data set 5 (Evaluated)
     - [ ] Write data set data from database to an output file
 - [x] Data storage (SQL database)
   - [x] DB class that interacts with SQL database
