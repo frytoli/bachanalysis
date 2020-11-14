@@ -144,9 +144,6 @@ def crop_face(name, b64photo):
 	# Rotate image
 	straight_img = rotate_img(img, rotation_angle)
 
-	# TEST
-	cv2.imwrite(f'''{name.replace(' ','').lower()}.jpeg''', img)
-
 	# Many thanks to https://github.com/rajendra7406-zz/FaceShape -->
 	# Make a copy of the original (straightened) image
 	img_original = straight_img.copy()
@@ -158,7 +155,6 @@ def crop_face(name, b64photo):
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
 	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=10, minSize=(30,30), flags=cv2.CASCADE_SCALE_IMAGE)
-	print(len(faces))
 	if len(faces) > 0:
 		(x, y, w, h) = faces[0]
 
@@ -200,9 +196,6 @@ def crop_face(name, b64photo):
 		dimensions = (int(width * ratio), resize_height)
 		img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
 
-		# TEST
-		cv2.imwrite('temp.jpeg', img_resized)
-
 		# Encode resized, cropped image as base64 string
 		b64face = base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()
 		# Model the data
@@ -240,11 +233,24 @@ def main():
 	if args.overwrite:
 		bachdb.create_table('ds5', bachdata.get_sql_table_values(5), drop_existing=True)
 
-	# Retrieve contestants' names (id) and photos
-	contestants = bachdb.get_docs('ds3', column='name, photo')
+	# If no contestants are given by the user, process every contestant from data set 3 in the database
+	if len(args.contestant) == 0:
+		# Retrieve contestants' names (id) and photos
+		contestants = bachdb.get_docs('ds3', column='name, photo')
+		if len(contestants) == 0:
+			print(f'Mayday! Unable to compile data set 5. Has data set 3 been collected and stored?')
+	else:
+		contestants = []
+		for contestant in args.contestant:
+			names = contestant.lower().split('_')
+			name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
+			contestant = bachdb.get_docs('ds3', column='name, photo', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+			if len(contestant) > 0:
+				contestants += contestant
 	# Multiprocess cropping contestants' faces from their photos
 	pool_resp = pool.starmap_async(crop_face, contestants)
 	pool_resp.get()
+
 
 if __name__ == '__main__':
 	main()
