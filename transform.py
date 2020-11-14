@@ -153,7 +153,6 @@ def process_face(name, b64photo):
 
 	# Find detected face index and rotation angle for image
 	face_index, rotation_angle = get_face_rotation(img)
-	print(face_index, name)
 	# Rotate image
 	img_straight = rotate_img(img, rotation_angle)
 
