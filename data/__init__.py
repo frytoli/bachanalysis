@@ -47,9 +47,12 @@ class bachdata():
                 'temp': ''
             },
             5: {
-                'name': '',
-                'dlib_landmarks': '',
-                'face_photo': ''
+                'name': '', # '' for null
+                'dlib_landmarks': '', # '' for null
+                'face_photo': '', # '' for null
+                'rule_of_thirds': '', # '' for null
+                'rule_of_fifths': '', # '' for null
+                'golden_ratio': '' # '' for null
             }
         }
 
