@@ -74,7 +74,7 @@ def get_face_rotation(img):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(30,30), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=6, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
 	face_index = 0
 	for face in faces:
 		(x, y, w, h) = face
@@ -166,7 +166,7 @@ def process_face(name, b64photo):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(30,30), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=6, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
 	if len(faces) > 0:
 		# Handle the case that a face is not detected this time around or face_index is null
 		if not face_index or len(faces) <= face_index:
@@ -200,8 +200,8 @@ def process_face(name, b64photo):
 		# Crop photo to just contestant's face
 		img_cropped = img_original[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
 
-		# Resize image to height == 300 (for standardization)
-		resize_height = 300
+		# Resize image to height == 200 (for standardization)
+		resize_height = 200
 		# Calculate the ratio of the height and construct the dimensions
 		(height, width) = img_straight.shape[:2]
 		ratio = resize_height / float(height)
@@ -209,7 +209,7 @@ def process_face(name, b64photo):
 		img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
 
 		# Encode resized, cropped image as base64 string
-		b64face = base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()
+		b64face = f'''data:image/jpeg;base64,{base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()}'''
 
 		# Lastly, detect new landmarks
 		landmarks = detect_landmarks(x, y, w, h, img_resized).tolist()
