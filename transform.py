@@ -17,6 +17,7 @@ import base64
 import data
 import dlib
 import math
+import json
 import cv2
 import db
 import os
@@ -46,11 +47,22 @@ def rotate_img(img, angle):
 	result = cv2.warpAffine(img, rot_mat, img.shape[1::-1], flags=cv2.INTER_LINEAR)
 	return result
 
+def detect_landmarks(x, y, w, h, img):
+	# Read-in dlib shape predictor from http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
+	predictor = dlib.shape_predictor('/usr/bin/shape_predictor_68_face_landmarks.dat')
+	# Convert the cv2 rectangle coordinates to Dlib rectangle
+	dlib_rect = dlib.rectangle(x, y, x+w, y+h)
+	# Detect landmarks
+	detected_landmarks = predictor(img, dlib_rect).parts()
+	# Convert landmarks to np matrix (containes indices of landmarks)
+	landmarks = np.matrix([[p.x,p.y] for p in detected_landmarks])
+	return landmarks
+
 '''
 Rotate a contestant's photo so that their face is straight
 https://sefiks.com/2020/02/23/face-alignment-for-face-recognition-in-python-within-opencv/
 '''
-def get_rotation(img):
+def get_face_rotation(img):
 	# Load pre-trained classifiers
 	face_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml')
 	eye_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_eye.xml')
@@ -62,68 +74,70 @@ def get_rotation(img):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=10, minSize=(30,30), flags=cv2.CASCADE_SCALE_IMAGE)
-	print(len(faces))
-	if len(faces) > 0:
-		(x, y, w, h) = faces[0]
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(1,1), flags=cv2.CASCADE_SCALE_IMAGE)
+	face_index = 0
+	for face in faces:
+		(x, y, w, h) = face
 		# Get face image
 		face_img = img_gauss[y:y+h, x:x+w]
 
 		# Detect eyes
 		eyes = eye_cascade.detectMultiScale(face_img)
-		index = 0
-		for (x, y, w, h) in eyes:
-			if index == 0:
-				eye1 = (x, y, w, h)
-			elif index == 1:
-				eye2 = (x, y, w, h)
-			index = index + 1
-		# Determine right vs left eyes
-		if eye1[0] < eye2[0]:
-			left_eye = eye1
-			right_eye = eye2
-		else:
-			left_eye = eye2
-			right_eye = eye1
+		# Ensure that at least two eyes were detected
+		if len(eyes) > 1:
+			eye1 = eyes[0]
+			eye2 = eyes[1]
+			# Determine right vs left eyes
+			if eye1[0] < eye2[0]:
+				left_eye = eye1
+				right_eye = eye2
+			else:
+				left_eye = eye2
+				right_eye = eye1
 
-		# Get the center point of each eye
-		left_x = int(left_eye[0] + (left_eye[2] / 2))
-		left_y = int(left_eye[1] + (left_eye[3] / 2))
-		left_center = (left_x, left_y)
-		right_x = int(right_eye[0] + (right_eye[2]/2))
-		right_y = int(right_eye[1] + (right_eye[3]/2))
-		right_center = (right_x, right_y)
+			# Get the center point of each eye
+			left_x = int(left_eye[0] + (left_eye[2] / 2))
+			left_y = int(left_eye[1] + (left_eye[3] / 2))
+			left_center = (left_x, left_y)
+			right_x = int(right_eye[0] + (right_eye[2]/2))
+			right_y = int(right_eye[1] + (right_eye[3]/2))
+			right_center = (right_x, right_y)
 
-		# Evaluate the location of the horizontal point and direction of rotation (clockwise or counterclockwise)
-		if left_y < right_y:
-			horiz_point = (right_x, left_y)
-			direction = -1 # clockwise
-		else:
-			horiz_point = (left_x, right_y)
-			direction = 1 # counterclockwise
+			# Evaluate the location of the horizontal point and direction of rotation (clockwise or counterclockwise)
+			if left_y < right_y:
+				horiz_point = (right_x, left_y)
+				direction = -1 # clockwise
+			else:
+				horiz_point = (left_x, right_y)
+				direction = 1 # counterclockwise
 
-		# Evaluate the edge lengths of the triangle made up of the line between the center of the eyes, a perfectly horizontal line, and a perfectly vertical line (with euclidean distance)
-		a = euclidean_distance(left_center, horiz_point)
-		b = euclidean_distance(right_center, left_center)
-		c = euclidean_distance(right_center, horiz_point)
+			# Evaluate the edge lengths of the triangle made up of the line between the center of the eyes, a perfectly horizontal line, and a perfectly vertical line (with euclidean distance)
+			a = euclidean_distance(left_center, horiz_point)
+			b = euclidean_distance(right_center, left_center)
+			c = euclidean_distance(right_center, horiz_point)
 
-		# Find the possible angle of rotation with arc cosine (inverse)
-		arc_cos = (b*b + c*c - a*a)/(2*b*c)
-		angle = np.arccos(arc_cos)
-		# Convert angle from radians to degrees
-		angle = (angle * 180) / math.pi
+			# Find the possible angle of rotation with arc cosine (inverse)
+			if b > 0 and c > 0: # Ensure no division by 0
+				arc_cos = (b*b + c*c - a*a)/(2*b*c)
+				angle = np.arccos(arc_cos)
+				# Convert angle from radians to degrees
+				angle = (angle * 180) / math.pi
 
-		# If rotating clockwise, evaluate angle by subtracting it from 90 (sum of all angles of a triangle = 180, we've already created a right 90 degree angle between the horizontal/vertical lines and line between center of the eyes)
-		if direction == -1:
-			angle = 90 - angle
+				# If rotating clockwise, evaluate angle by subtracting it from 90 (sum of all angles of a triangle = 180, we've already created a right 90 degree angle between the horizontal/vertical lines and line between center of the eyes)
+				if direction == -1:
+					angle = 90 - angle
+			else:
+				angle = 0
 
-		# Return the angle to rotate
-		return angle
+			# Return the angle to rotate
+			return face_index, angle
+		face_index += 1
+	return None, None
 
 '''
 Crop a contestant's photo to just their face
 '''
-def crop_face(name, b64photo):
+def process_face(name, b64photo):
 	# Initialize sqldb object
 	bachdb = db.bachdb(PATH_TO_DB)
 	# Initialize data model handler object
@@ -131,40 +145,39 @@ def crop_face(name, b64photo):
 
 	# Load pre-trained classifier
 	face_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml')
-	# Read-in dlib shape predictor from http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
-	predictor = dlib.shape_predictor('/usr/bin/shape_predictor_68_face_landmarks.dat')
 
 	# Extract image extension
 	ext = f'''.{b64photo.split(';base64')[0].split('/')[-1]}'''
 	# Convert base64 encoded photo to a cv2 image
 	img = b64_to_img(b64photo)
 
-	# Find rotation angle for image
-	rotation_angle = get_rotation(img)
+	# Find detected face index and rotation angle for image
+	face_index, rotation_angle = get_face_rotation(img)
+	print(face_index, name)
 	# Rotate image
-	straight_img = rotate_img(img, rotation_angle)
+	img_straight = rotate_img(img, rotation_angle)
 
 	# Many thanks to https://github.com/rajendra7406-zz/FaceShape -->
 	# Make a copy of the original (straightened) image
-	img_original = straight_img.copy()
+	img_original = img_straight.copy()
 	# Convert to grayscale
-	img_gray = cv2.cvtColor(straight_img, cv2.COLOR_BGR2GRAY)
+	img_gray = cv2.cvtColor(img_straight, cv2.COLOR_BGR2GRAY)
 	# Apply a Gaussian blur with a 3 x 3 kernel to help remove high frequency noise
 	img_gauss = cv2.GaussianBlur(img_gray,(3,3), 0)
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=10, minSize=(30,30), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(1,1), flags=cv2.CASCADE_SCALE_IMAGE)
 	if len(faces) > 0:
-		(x, y, w, h) = faces[0]
+		# Handle the case that a face is not detected this time around or face_index is null
+		if not face_index or len(faces) <= face_index:
+			face_index = 0
 
-		# Convert the cv2 rectangle coordinates to Dlib rectangle
-		dlib_rect = dlib.rectangle(x, y, x+w, y+h)
+		# Use face at face_index (from rotation angle evaluation)
+		(x, y, w, h) = faces[face_index]
 
 		# Detect landmarks
-		detected_landmarks = predictor(straight_img, dlib_rect).parts()
-		# Convert landmarks to np matrix (containes indices of landmarks)
-		landmarks = np.matrix([[p.x,p.y] for p in detected_landmarks])
+		landmarks = detect_landmarks(x, y, w, h, img_straight)
 
 		# Save left and right cheek points
 		cheek_left = (landmarks[1,0],landmarks[1,1])
@@ -191,16 +204,21 @@ def crop_face(name, b64photo):
 		# Resize image to height == 300 (for standardization)
 		resize_height = 300
 		# Calculate the ratio of the height and construct the dimensions
-		(height, width) = straight_img.shape[:2]
+		(height, width) = img_straight.shape[:2]
 		ratio = resize_height / float(height)
 		dimensions = (int(width * ratio), resize_height)
 		img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
 
 		# Encode resized, cropped image as base64 string
 		b64face = base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()
+
+		# Lastly, detect new landmarks
+		landmarks = detect_landmarks(x, y, w, h, img_resized).tolist()
+
 		# Model the data
 		record = {
 			'name': name,
+			'dlib_landmarks': json.dumps(landmarks), # Json dump nested list as a string
 			'face_photo': b64face
 		}
 	else:
@@ -247,8 +265,8 @@ def main():
 			contestant = bachdb.get_docs('ds3', column='name, photo', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
 			if len(contestant) > 0:
 				contestants += contestant
-	# Multiprocess cropping contestants' faces from their photos
-	pool_resp = pool.starmap_async(crop_face, contestants)
+	# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
+	pool_resp = pool.starmap_async(process_face, contestants)
 	pool_resp.get()
 
 
