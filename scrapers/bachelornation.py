@@ -148,5 +148,7 @@ def scrape_contestant(contestant):
             b = p.find('b')
             i = p.find('i')
             if b and b.text.strip().lower() == 'height':
-                data['height'] = p.text.lower().replace(b.text.strip().lower(),'').replace(i.text.strip().lower(),'').strip()
+                data['height'] = p.text.lower().replace(b.text.strip().lower(),'').strip()
+                if i:
+                    data['height'] = data['height'].replace(i.text.strip().lower(),'')
     return data
