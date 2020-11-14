@@ -74,7 +74,7 @@ def get_face_rotation(img):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(1,1), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(30,30), flags=cv2.CASCADE_SCALE_IMAGE)
 	face_index = 0
 	for face in faces:
 		(x, y, w, h) = face
@@ -167,7 +167,7 @@ def process_face(name, b64photo):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(1,1), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=3, minSize=(30,30), flags=cv2.CASCADE_SCALE_IMAGE)
 	if len(faces) > 0:
 		# Handle the case that a face is not detected this time around or face_index is null
 		if not face_index or len(faces) <= face_index:
