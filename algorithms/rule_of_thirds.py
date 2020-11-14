@@ -7,4 +7,5 @@ Take in a face image and evaluate how well it fits the rule of thirds:
 '''
 
 def evaluate(face_img):
+    # Return a list of the sizes of the three horizontal parts of the face
     pass

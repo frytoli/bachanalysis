@@ -7,4 +7,5 @@ Take in a face image and evaluate how well it fits the rule of fifths:
 '''
 
 def evaluate(face_img):
+    # Return a list of the sizes of the five vertical parts of the face
     pass
