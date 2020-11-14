@@ -45,7 +45,7 @@ def align_face(img):
 '''
 Crop a contestant's photo to just their face
 '''
-def crop_face(b64photo):
+def crop_face(name, b64photo):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
     # Initialize data model handler object
@@ -71,48 +71,51 @@ def crop_face(b64photo):
 
     # Detect contestant's face
     faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=5, minSize=(100,100), flags=cv2.CASCADE_SCALE_IMAGE)
-    (x, y, w, h) = faces[0]
+    if len(faces) > 0:
+        (x, y, w, h) = faces[0]
 
-    # Convert the cv2 rectangle coordinates to Dlib rectangle
-    dlib_rect = dlib.rectangle(x, y, x+w, y+h)
+        # Convert the cv2 rectangle coordinates to Dlib rectangle
+        dlib_rect = dlib.rectangle(x, y, x+w, y+h)
 
-    # Detect landmarks
-    detected_landmarks = predictor(img, dlib_rect).parts()
-    # Convert landmarks to np matrix (containes indices of landmarks)
-    landmarks = np.matrix([[p.x,p.y] for p in detected_landmarks])
+        # Detect landmarks
+        detected_landmarks = predictor(img, dlib_rect).parts()
+        # Convert landmarks to np matrix (containes indices of landmarks)
+        landmarks = np.matrix([[p.x,p.y] for p in detected_landmarks])
 
-    # Save left and right cheek points
-    cheek_left = (landmarks[1,0],landmarks[1,1])
-    cheek_right = (landmarks[15,0],landmarks[15,1])
-    # Save left and right jaw points (only in the case that the distance between these two points is larger than the distance between the two cheek points)
-    jaw_left = (landmarks[3,0],landmarks[3,1])
-    jaw_right = (landmarks[13,0],landmarks[13,1])
-    # Save top (of forehead) and bottom (of chin) face points
-    face_bottom = (landmarks[8,0],landmarks[8,1])
-    face_top = (landmarks[8,0],y)
-    # Find top right and bottom left points of rectangle around face
-    if cheek_left[0] < jaw_left[0]:
-        top_left = (cheek_left[0], face_top[1])
+        # Save left and right cheek points
+        cheek_left = (landmarks[1,0],landmarks[1,1])
+        cheek_right = (landmarks[15,0],landmarks[15,1])
+        # Save left and right jaw points (only in the case that the distance between these two points is larger than the distance between the two cheek points)
+        jaw_left = (landmarks[3,0],landmarks[3,1])
+        jaw_right = (landmarks[13,0],landmarks[13,1])
+        # Save top (of forehead) and bottom (of chin) face points
+        face_bottom = (landmarks[8,0],landmarks[8,1])
+        face_top = (landmarks[8,0],y)
+        # Find top right and bottom left points of rectangle around face
+        if cheek_left[0] < jaw_left[0]:
+            top_left = (cheek_left[0], face_top[1])
+        else:
+            top_left = (jaw_left[0], face_top[1])
+        if cheek_right[0] > cheek_right[0]:
+            bottom_right = (cheek_right[0], face_bottom[1])
+        else:
+            bottom_right = (jaw_right[0], face_bottom[1])
+
+        # Crop photo to just contestant's face
+        img_cropped = img_original[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+
+        # Resize image to height == 500 (for standardization)
+        resize_height = 500
+        # Calculate the ratio of the height and construct the dimensions
+        (height, width) = img.shape[:2]
+        ratio = resize_height / float(height)
+        dimensions = (int(width * ratio), resize_height)
+        img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
+
+        # Encode resized, cropped image as base64 string
+        b64face = base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()
     else:
-        top_left = (jaw_left[0], face_top[1])
-    if cheek_right[0] > cheek_right[0]:
-        bottom_right = (cheek_right[0], face_bottom[1])
-    else:
-        bottom_right = (jaw_right[0], face_bottom[1])
-
-    # Crop photo to just contestant's face
-    img_cropped = img_original[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
-
-    # Resize image to height == 500 (for standardization)
-    resize_height = 500
-    # Calculate the ratio of the height and construct the dimensions
-    (height, width) = img.shape[:2]
-    ratio = resize_height / float(height)
-    dimensions = (int(width * ratio), resize_height)
-    img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
-
-    # Encode resized, cropped image as base64 string
-    b64face = base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()
+        b64face = ''
 
     # Model the data
     record = {
