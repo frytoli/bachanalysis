@@ -34,11 +34,6 @@ def evaluate(face_img, landmarks):
     # Get height distance from bottom of nose to chin (bottom of image)
     third3 = h-landmarks[33,1]
 
-    cv2.circle(face_img, (50, third1), 1, (255,0,0), 1)
-    cv2.circle(face_img, (50, landmarks[33,1]), 1, (0,255,0), 1)
-    cv2.circle(face_img, (50, h), 1, (0,0,255), 1)
-    cv2.imwrite('temp.jpeg', face_img)
-
     # Evaluate the percent error of each part
     percent_errors = [percent_error(third, theoretical_h) for third in [third1, third2, third3]]
     # Return
