@@ -339,25 +339,24 @@ def main():
 			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
 			if len(args.contestant) == 0:
 				# Retrieve contestants' names (id)
-				contestants = [contestant[0] for contestant in bachdb.get_docs('ds5', column='name')]
+				contestants = bachdb.get_docs('ds5', column='name')
 				if len(contestants) == 0:
 					print(f'Mayday! Unable to evaluate rule of thirds. Has data set 5 been collected, preprocessed, and stored?')
+				else:
+					for contestant in contestants:
+						eval_rule_of_thirds(contestant[0])
 			else:
 				contestants = []
 				for contestant in args.contestant:
 					names = contestant.lower().split('_')
 					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-					contestants.append(name)
-			# Multiprocess evaluating rule of thirds
-			pool_resp = pool.map(eval_rule_of_thirds, contestants)
+					eval_rule_of_thirds(name)
 		# Rule of fifths
 		if 'fifths' in args.algorithm:
 			print('fifths')
 		# Golden ratio
 		if 'golden' in args.algorithm:
 			print('golden')
-		# Let 'er rip!
-		pool_resp.get()
 
 if __name__ == '__main__':
 	main()
