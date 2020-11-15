@@ -11,6 +11,7 @@ Create a new dataset by
 '''
 
 from multiprocessing import Pool
+from algorithms import *
 import numpy as np
 import argparse
 import base64
@@ -60,7 +61,7 @@ def detect_landmarks(x, y, w, h, img):
 
 '''
 Rotate a contestant's photo so that their face is straight
-https://sefiks.com/2020/02/23/face-alignment-for-face-recognition-in-python-within-opencv/
+Guidance from: https://sefiks.com/2020/02/23/face-alignment-for-face-recognition-in-python-within-opencv/
 '''
 def get_face_rotation(img):
 	# Load pre-trained classifiers
@@ -109,7 +110,7 @@ def get_face_rotation(img):
 			else:
 				y = landmarks[46, 1]
 			left_bottom_right = (landmarks[45,0], y)
-			# Get the center points of each eye
+			# Get the center points of each eye (midpoint formula)
 			right_x = (right_top_left[0] + right_bottom_right[0])//2
 			right_y = (right_top_left[1] + right_bottom_right[1])//2
 			right_center = (right_x, right_y)
@@ -217,39 +218,86 @@ def process_face(name, b64photo):
 		# Resize image to height == 200 (for standardization)
 		resize_height = 200
 		# Calculate the ratio of the height and construct the dimensions
-		(height, width) = img_straight.shape[:2]
-		ratio = resize_height / float(height)
-		dimensions = (int(width * ratio), resize_height)
-		img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
+		h, w, c = img_cropped.shape
+		ratio = resize_height / h
+		dimensions = (int(w * ratio), resize_height)
+		try:
+			img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
+		except Exception as e:
+			print(f'Mayday! {e}')
+			img_resized = np.array([])
 
-		# Encode resized, cropped image as base64 string
-		b64face = f'''data:image/jpeg;base64,{base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()}'''
+		if img_resized.size > 0:
+			# Encode resized, cropped image as base64 string
+			b64face = f'''data:image/jpeg;base64,{base64.b64encode(cv2.imencode(ext, img_resized)[1]).decode()}'''
 
-		# Lastly, detect new landmarks
-		landmarks = detect_landmarks(x, y, w, h, img_resized).tolist()
+			# Lastly, detect new landmarks
+			h, w, c = img_resized.shape
+			landmarks = detect_landmarks(0, 0, w, h, img_resized).tolist()
 
-		# Model the data
-		record = {
-			'name': name,
-			'dlib_landmarks': json.dumps(landmarks), # Json dump nested list as a string
-			'face_photo': b64face
-		}
+			# Model the data
+			record = {
+				'name': name,
+				'dlib_landmarks': json.dumps(landmarks), # Json dump nested list as a string
+				'face_photo': b64face
+			}
+		else:
+			record = {}
 	else:
 		record = {}
-
 	if len(record) > 0:
 		modeled_record = bachdata.model_one(5, record)
 		# Add the modeled data to ds5 table
 		bachdb.insert_doc('ds5', modeled_record)
-
 	# Explicity remove record from memory
 	del record
+
+def eval_rule_of_thirds(name):
+	# Initialize sqldb object
+	bachdb = db.bachdb(PATH_TO_DB)
+	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
+	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+	if len(contestants) > 0:
+		for contestant in contestants:
+			percent_error = rule_of_thirds.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			# Update record in database
+			bachdb.update_doc('ds5', {'key':'rule_of_thirds','operator':'=','comparison':json.dumps(percent_error)}, {'key':'name','operator':'==','comparison':name})
+	# Clean memory
+	del contestants
+
+def eval_rule_of_fifths(name):
+	# Initialize sqldb object
+	bachdb = db.bachdb(PATH_TO_DB)
+	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
+	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+	if len(contestants) > 0:
+		for contestant in contestants:
+			percent_error = rule_of_fifths.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			# Update record in database
+			bachdb.update_doc('ds5', {'key':'rule_of_fifths','operator':'=','comparison':json.dumps(percent_error)}, {'key':'name','operator':'==','comparison':name})
+	# Clean memory
+	del contestants
+
+def eval_golden_ratio(name):
+	# Initialize sqldb object
+	bachdb = db.bachdb(PATH_TO_DB)
+	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
+	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+	if len(contestants) > 0:
+		for contestant in contestants:
+			percent_error = golden_ratio.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			# Update record in database
+			bachdb.update_doc('ds5', {'key':'golden_ratio','operator':'=','comparison':json.dumps(percent_error)}, {'key':'name','operator':'==','comparison':name})
+	# Clean memory
+	del contestants
 
 def main():
 	# Retrieve args
 	parser = argparse.ArgumentParser(description='Process contestant data')
+	parser.add_argument('--preprocess', dest='preprocess', action='store_true', help='preprocess the data (rotate, crop, and identify dlib landmarks) for data set 5')
+	parser.add_argument('--algorithm', dest='algorithm', type=str, nargs='+', default=['thirds', 'fifths', 'golden', 'features'], help='a string algorithm name to perform (thirds, fifths, golden, and/or features)')
 	parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (i.e. joelle_fletcher)')
-	parser.add_argument('--overwrite', dest='overwrite', action='store_true', help='overwrite applicable table(s) in the database')
+	parser.add_argument('--overwrite', dest='overwrite', action='store_true', help='overwrite table ds5 in the database. Only applicable with preprocess flag')
 	args = parser.parse_args()
 
 	# Initialize multiprocessing pool with 5 threads
@@ -260,28 +308,59 @@ def main():
 	# Initialize data model handler object
 	bachdata = data.bachdata()
 
-	# Drop and create new data source tables, if applicable
-	if args.overwrite:
-		bachdb.create_table('ds5', bachdata.get_sql_table_values(5), drop_existing=True)
+	# If the user wants to preprocess the data
+	if args.preprocess:
+		# Drop and create new data source tables, if applicable
+		if args.overwrite:
+			bachdb.create_table('ds5', bachdata.get_sql_table_values(5), drop_existing=True)
 
-	# If no contestants are given by the user, process every contestant from data set 3 in the database
-	if len(args.contestant) == 0:
-		# Retrieve contestants' names (id) and photos
-		contestants = bachdb.get_docs('ds3', column='name, photo')
-		if len(contestants) == 0:
-			print(f'Mayday! Unable to compile data set 5. Has data set 3 been collected and stored?')
-	else:
-		contestants = []
-		for contestant in args.contestant:
-			names = contestant.lower().split('_')
-			name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-			contestant = bachdb.get_docs('ds3', column='name, photo', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
-			if len(contestant) > 0:
-				contestants += contestant
-	# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
-	pool_resp = pool.starmap_async(process_face, contestants)
-	pool_resp.get()
+		# If no contestants are given by the user, process every contestant from data set 3 in the database
+		if len(args.contestant) == 0:
+			# Retrieve contestants' names (id) and photos
+			contestants = bachdb.get_docs('ds3', column='name, photo')
+			if len(contestants) == 0:
+				print(f'Mayday! Unable to compile data set 5. Has data set 3 been collected and stored?')
+		else:
+			contestants = []
+			for contestant in args.contestant:
+				names = contestant.lower().split('_')
+				name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
+				contestant = bachdb.get_docs('ds3', column='name, photo', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+				if len(contestant) > 0:
+					contestants += contestant
+		# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
+		pool_resp = pool.starmap_async(process_face, contestants)
+		pool_resp.get()
 
+	# Perform algorithms if specified
+	if len(args.algorithm) > 0:
+		# Rule of thirds
+		if 'thirds' in args.algorithm:
+			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
+			if len(args.contestant) == 0:
+				# Retrieve contestants' names (id)
+				contestants = [contestant[0] for contestant in bachdb.get_docs('ds5', column='name')]
+				if len(contestants) == 0:
+					print(f'Mayday! Unable to evaluate rule of thirds. Has data set 5 been collected, preprocessed, and stored?')
+			else:
+				contestants = []
+				for contestant in args.contestant:
+					names = contestant.lower().split('_')
+					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
+					contestants.append(name)
+			# Multiprocess evaluating rule of thirds
+			pool_resp = pool.map(eval_rule_of_thirds, contestants)
+		# Rule of fifths
+		if 'fifths' in args.algorithm:
+			print('fifths')
+		# Golden ratio
+		if 'golden' in args.algorithm:
+			print('golden')
+		# Feature measurement
+		if 'features' in args.algorithm:
+			print('features')
+		# Let 'er rip!
+		pool_resp.get()
 
 if __name__ == '__main__':
 	main()
