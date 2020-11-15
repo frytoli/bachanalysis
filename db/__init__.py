@@ -85,6 +85,27 @@ class bachdb():
             self.conn.commit()
             self.conn.close
 
+    def update_doc(self, table, to_set, where):
+        if len(to_set) > 0 and type(to_set)==dict:
+            # Prepare set string like filter strings
+            to_set_strs = self.__prepare_filterstr(table, [to_set])
+            if len(to_set_strs) > 0:
+                if len(where) > 0 and type(where)==dict:
+                    where_strs = self.__prepare_filterstr(table, [where])
+                if len(where_strs) > 0:
+                    try:
+                        self.cur.execute(f'''Update {table} set {to_set_strs[0]} where {where_strs[0]}''')
+                    except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
+                        print(f'''Sqlite3 error when updating {to_set_strs[0]} where {where_strs[0]} in {table}: {e}''')
+                else:
+                    try:
+                        self.cur.execute(f'''Update {table} set {to_set_strs[0]}''')
+                    except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
+                        print(f'''Sqlite3 error when updating {to_set_strs[0]} in {table}: {e}''')
+            # Commit and close connection
+            self.conn.commit()
+            self.conn.close
+
     '''
     Query and return documents from a given table
     '''
