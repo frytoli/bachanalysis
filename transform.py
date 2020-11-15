@@ -80,28 +80,42 @@ def get_face_rotation(img):
 		(x, y, w, h) = face
 		# Get face image
 		face_img = img_gauss[y:y+h, x:x+w]
-
-		# Detect eyes
+		# Detect eyes JUST for second check that detected face is truly a face
 		eyes = eye_cascade.detectMultiScale(face_img)
-		# Ensure that at least two eyes were detected
-		if len(eyes) > 1:
-			eye1 = eyes[0]
-			eye2 = eyes[1]
-			# Determine right vs left eyes
-			if eye1[0] < eye2[0]:
-				left_eye = eye1
-				right_eye = eye2
+		# Ensure that at least one eye was detected
+		if len(eyes) > 0:
+			# Detect landmarks -- NOTE: it seems as if all landmarks are truly at point landmark-1
+			landmarks = detect_landmarks(x, y, w, h,img)
+			# Get the center point of (midpoint between) each eye
+			# Get top left and bottom right points of left eye
+			if landmarks[37, 1] > landmarks[38, 1]:
+				y = landmarks[38, 1]
 			else:
-				left_eye = eye2
-				right_eye = eye1
-
-			# Get the center point of each eye
-			left_x = int(left_eye[0] + (left_eye[2] / 2))
-			left_y = int(left_eye[1] + (left_eye[3] / 2))
-			left_center = (left_x, left_y)
-			right_x = int(right_eye[0] + (right_eye[2]/2))
-			right_y = int(right_eye[1] + (right_eye[3]/2))
+				y = landmarks[37, 1]
+			right_top_left = (landmarks[36,0], y)
+			if landmarks[41, 1] > landmarks[40, 1]:
+				y = landmarks[41, 1]
+			else:
+				y = landmarks[40, 1]
+			right_bottom_right = (landmarks[39,0], y)
+			# Get top left and bottom right points of right eye
+			if landmarks[43, 1] > landmarks[44,1]:
+				y = landmarks[44,1]
+			else:
+				y = landmarks[43,1]
+			left_top_left = (landmarks[42,0], y)
+			if landmarks[47, 1] > landmarks[46, 1]:
+				y = landmarks[47, 1]
+			else:
+				y = landmarks[46, 1]
+			left_bottom_right = (landmarks[45,0], y)
+			# Get the center points of each eye
+			right_x = (right_top_left[0] + right_bottom_right[0])//2
+			right_y = (right_top_left[1] + right_bottom_right[1])//2
 			right_center = (right_x, right_y)
+			left_x = (left_top_left[0] + left_bottom_right[0])//2
+			left_y = (left_top_left[1] + left_bottom_right[1])//2
+			left_center = (left_x, left_y)
 
 			# Evaluate the location of the horizontal point and direction of rotation (clockwise or counterclockwise)
 			if left_y < right_y:
@@ -119,15 +133,15 @@ def get_face_rotation(img):
 			# Find the possible angle of rotation with arc cosine (inverse)
 			if b > 0 and c > 0: # Ensure no division by 0
 				arc_cos = (b*b + c*c - a*a)/(2*b*c)
-				angle = np.arccos(arc_cos)
-				# Convert angle from radians to degrees
-				angle = (angle * 180) / math.pi
-
-				# If rotating clockwise, evaluate angle by subtracting it from 90 (sum of all angles of a triangle = 180, we've already created a right 90 degree angle between the horizontal/vertical lines and line between center of the eyes)
-				if direction == -1:
-					angle = 90 - angle
 			else:
-				angle = 0
+				arc_cos = 0
+			angle = np.arccos(arc_cos)
+			# Convert angle from radians to degrees
+			angle = (angle * 180) / math.pi
+
+			# If rotating clockwise, evaluate angle by negative evaluation of 90-angle (sum of all angles of a triangle = 180, we've already created a right 90 degree angle between the horizontal/vertical lines and line between center of the eyes)
+			if direction == -1:
+				angle = 0-(90 - angle)
 
 			# Return the angle to rotate
 			return face_index, angle
