@@ -87,7 +87,7 @@ def get_face_rotation(img):
 			# Detect landmarks -- NOTE: it seems as if all landmarks are truly at point landmark-1
 			landmarks = detect_landmarks(x, y, w, h,img)
 			# Get the center point of (midpoint between) each eye
-			# Get top left and bottom right points of left eye
+			# Get top left and bottom right points of right eye
 			if landmarks[37, 1] > landmarks[38, 1]:
 				y = landmarks[38, 1]
 			else:
@@ -98,7 +98,7 @@ def get_face_rotation(img):
 			else:
 				y = landmarks[40, 1]
 			right_bottom_right = (landmarks[39,0], y)
-			# Get top left and bottom right points of right eye
+			# Get top left and bottom right points of left eye
 			if landmarks[43, 1] > landmarks[44,1]:
 				y = landmarks[44,1]
 			else:
