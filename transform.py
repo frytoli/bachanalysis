@@ -295,7 +295,7 @@ def main():
 	# Retrieve args
 	parser = argparse.ArgumentParser(description='Process contestant data')
 	parser.add_argument('--preprocess', dest='preprocess', action='store_true', help='preprocess the data (rotate, crop, and identify dlib landmarks) for data set 5')
-	parser.add_argument('--algorithm', dest='algorithm', type=str, nargs='+', default=['thirds', 'fifths', 'golden', 'features'], help='a string algorithm name to perform (thirds, fifths, golden, and/or features)')
+	parser.add_argument('--algorithm', dest='algorithm', type=str, nargs='+', default=['thirds', 'fifths', 'golden', 'features'], help='a string algorithm name to perform (thirds, fifths, and/or golden)')
 	parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (i.e. joelle_fletcher)')
 	parser.add_argument('--overwrite', dest='overwrite', action='store_true', help='overwrite table ds5 in the database. Only applicable with preprocess flag')
 	args = parser.parse_args()
@@ -356,9 +356,6 @@ def main():
 		# Golden ratio
 		if 'golden' in args.algorithm:
 			print('golden')
-		# Feature measurement
-		if 'features' in args.algorithm:
-			print('features')
 		# Let 'er rip!
 		pool_resp.get()
 
