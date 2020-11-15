@@ -23,8 +23,18 @@ def evaluate(face_img, landmarks):
 
     # Get height of face from hairline (top of image) to eyebrows
     # Get midpoint of eyebrows
-    right_center = ((landmarks[18,0]+landmarks[20,0])//2, (landmarks[18,1]+landmarks[20,1])//2)
-    left_center = ((landmarks[23,0]+landmarks[25,0])//2, (landmarks[23,1]+landmarks[25,1])//2)
+    right_top_right = (landmarks[17,0], landmarks[19,1])
+    if landmarks[17,1] > landmarks[21,1]:
+        right_bottom_left = (landmarks[21,0], landmarks[17,1])
+    else:
+        right_bottom_left = (landmarks[21,0], landmarks[17,1])
+    left_top_right = (landmarks[22,0], landmarks[24,1])
+    if landmarks[22,1] > landmarks[26,1]:
+        left_bottom_left = (landmarks[26,0], landmarks[22,1])
+    else:
+        left_bottom_left = (landmarks[26,0], landmarks[26,1])
+    right_center = ((right_top_right[0]+right_bottom_left[0])//2, (right_top_right[1]+right_bottom_left[1])//2)
+    left_center = ((left_top_right[0]+left_bottom_left[0])//2, (left_top_right[1]+left_bottom_left[1])//2)
     # Get height distance from top of image to eyebrow midpoint
     third1 = (right_center[1]+left_center[1])//2
 
