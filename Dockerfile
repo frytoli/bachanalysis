@@ -48,6 +48,9 @@ RUN pip install --no-dependencies \
 	urllib3==1.25.11 \
 	webencodings==0.5.1
 
+# Download haarcascades mouth detector
+RUN wget https://raw.githubusercontent.com/atduskgreg/opencv-processing/master/lib/cascade-files/haarcascade_mcs_mouth.xml -P /venv/lib/python3.9/site-packages/cv2/data/
+
 # Download and extract dlib face landmarks data file
 RUN wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2 && \
 	bzip2 -dc shape_predictor_68_face_landmarks.dat.bz2 > /usr/bin/shape_predictor_68_face_landmarks.dat
