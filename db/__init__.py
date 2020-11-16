@@ -17,32 +17,34 @@ class bachdb():
         self.conn = sqlite3.connect(dbname)
         self.cur = self.conn.cursor()
 
-    def __prepare_filterstr(self, table, filters):
-        # Ensure that all keys in the given filters are known keys in the table AND escape all str type comparison values
+    def __prepare_conditional_str(self, table, conditionals):
+        # Ensure that all keys in the given conditionals are known keys in the table AND escape all str type comparison values
         allowed_operators = ['=', '==', '!=', '<>', '>', '<', '>=', '<=', '!<', '!>']
-        filter_strs = []
-        for filter in filters:
-            if 'key' in filter and 'operator' in filter and 'comparison' in filter:
+        conditional_strs = []
+        for conditional in conditionals:
+            if 'key' in conditional and 'operator' in conditional and 'comparison' in conditional:
                 # Ensure that the given operator is allowed
-                if filter['operator'] in allowed_operators:
+                if conditional['operator'] in allowed_operators:
                     # Escape text type values
-                    if type(filter['comparison']) == str:
-                        filter_str = f'''{filter['key']}{filter['operator']}{repr(str(filter['comparison']))}'''
-                    elif type(filter['comparison']) == int:
-                        filter_str = f'''{filter['key']}{filter['operator']}{int(filter['comparison'])}'''
+                    if type(conditional['comparison']) == str:
+                        conditional_str = f'''{conditional['key']}{conditional['operator']}{repr(str(conditional['comparison']))}'''
+                    elif type(conditional['comparison']) == int:
+                        conditional_str = f'''{conditional['key']}{conditional['operator']}{int(conditional['comparison'])}'''
+                    elif type(conditional['comparison']) == float:
+                        conditional_str = f'''{conditional['key']}{conditional['operator']}{float(conditional['comparison'])}'''
                     # Save conditional string and break
-                    filter_strs.append(filter_str)
+                    conditional_strs.append(conditional_str)
                 else:
-                    print(f'''Filter operator {filter['operator']} not allowed''')
+                    print(f'''Conditional operator {conditional['operator']} not allowed''')
                     return []
             else:
-                print('Incorrectly formatted filter')
+                print('Incorrectly formatted conditional')
                 return []
-        # Ensure that the number of generated filter strings is the same as the number of give filter objects
-        if len(filters) != len(filter_strs):
-            print('Not all filters are valid')
+        # Ensure that the number of generated conditional strings is the same as the number of give conditional objects
+        if len(conditionals) != len(conditional_strs):
+            print('Not all conditionals are valid')
             return []
-        return filter_strs
+        return conditional_strs
 
     '''
     Create a table from a list of tuples of values
@@ -86,25 +88,25 @@ class bachdb():
             self.conn.close
 
     def update_doc(self, table, to_set, where):
-        if len(to_set) > 0 and type(to_set)==dict:
+        if len(to_set) > 0:
             # Prepare set string like filter strings
-            to_set_strs = self.__prepare_filterstr(table, [to_set])
+            to_set_strs = self.__prepare_conditional_str(table, to_set)
             if len(to_set_strs) > 0:
                 if len(where) > 0 and type(where)==dict:
-                    where_strs = self.__prepare_filterstr(table, [where])
+                    where_strs = self.__prepare_conditional_str(table, [where])
                 if len(where_strs) > 0:
                     try:
-                        self.cur.execute(f'''Update {table} set {to_set_strs[0]} where {where_strs[0]}''')
+                        self.cur.execute(f'''Update {table} set {', '.join(to_set_strs)} where {where_strs[0]}''')
                     except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
-                        print(f'''Sqlite3 error when updating {to_set_strs[0]} where {where_strs[0]} in {table}: {e}''')
+                        print(f'''Sqlite3 error when updating {', '.join(to_set_strs)} where {where_strs[0]} in {table}: {e}''')
                 else:
                     try:
                         self.cur.execute(f'''Update {table} set {to_set_strs[0]}''')
                     except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
                         print(f'''Sqlite3 error when updating {to_set_strs[0]} in {table}: {e}''')
-            # Commit and close connection
-            self.conn.commit()
-            self.conn.close
+                # Commit and close connection
+                self.conn.commit()
+                self.conn.close
 
     '''
     Query and return documents from a given table
@@ -112,8 +114,8 @@ class bachdb():
     def get_docs(self, table, column='*', filters=[]):
         if len(filters) > 0:
             # Prepare filter strings
-            filter_strs = self.__prepare_filterstr(table, filters)
-            if filter_strs != []:
+            filter_strs = self.__prepare_conditional_str(table, filters)
+            if len(filter_strs) > 0:
                 try:
                     self.cur.execute(f'''SELECT {column} FROM {table} WHERE {' AND '.join(filter_strs)}''')
                 except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
@@ -137,7 +139,7 @@ class bachdb():
     def get_max_val(self, table, column, filters=[]):
         if len(filters) > 0:
             # Prepare filter strings
-            filter_strs = self.__prepare_filterstr(table, filters)
+            filter_strs = self.__prepare_conditional_str(table, filters)
             if len(filter_strs) > 0:
                 try:
                     self.cur.execute(f'''SELECT max({column}) FROM {table} WHERE {' AND '.join(filter_strs)}''')
