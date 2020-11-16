@@ -50,9 +50,33 @@ class bachdata():
                 'name': '', # '' for null
                 'dlib_landmarks': '', # '' for null
                 'face_photo': '', # '' for null
-                'rule_of_thirds': '', # '' for null
-                'rule_of_fifths': 0.0, # 0.0 for null
-                'golden_ratio': '' # '' for null
+                'face_height': 0, # 0 for null
+                'face_width': 0, # 0 for null
+                'theoretical_thirds': 0.0, # 0.0 for null
+                'experimental_thirds1': 0.0, # 0.0 for null
+                'experimental_thirds2': 0.0, # 0.0 for null
+                'experimental_thirds3': 0.0, # 0.0 for null
+                'theoretical_fifths': 0.0, # 0.0 for null
+                'experimental_fifths1': 0.0, # 0.0 for null
+                'experimental_fifths2': 0.0, # 0.0 for null
+                'experimental_fifths3': 0.0, # 0.0 for null
+                'experimental_fifths4': 0.0, # 0.0 for null
+                'experimental_fifths5': 0.0, # 0.0 for null
+                'hw_ratio': 0.0, # 0.0 for null
+                'v1_ratio': 0.0, # 0.0 for null
+                'v2_ratio': 0.0, # 0.0 for null
+                'v3_ratio': 0.0, # 0.0 for null
+                'v4_ratio': 0.0, # 0.0 for null
+                'v5_ratio': 0.0, # 0.0 for null
+                'v6_ratio': 0.0, # 0.0 for null
+                'v7_ratio': 0.0, # 0.0 for null
+                'h1_ratio': 0.0, # 0.0 for null
+                'h2_ratio': 0.0, # 0.0 for null
+                'h3_ratio': 0.0, # 0.0 for null
+                'h4_ratio': 0.0, # 0.0 for null
+                'h5_ratio': 0.0, # 0.0 for null
+                'h6_ratio': 0.0, # 0.0 for null
+                'h7_ratio': 0.0 # 0.0 for null
             }
         }
 
