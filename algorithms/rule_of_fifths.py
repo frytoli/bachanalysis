@@ -8,25 +8,31 @@ Take in a face image and evaluate how well it fits the rule of fifths:
 
 import cv2
 
-def percent_error(experimental, theoretical):
-    if theoretical != 0:
-        return (abs(experimental-theoretical)/abs(theoretical))*100
-    else:
-        print('Mayday! Cannot divide by zero')
-        return 0
-
 def evaluate(face_img, landmarks):
+    # Create fifths variable
+    fifths = {
+        'theoretical_fifths': 0.0,
+        'experimental_fifths1': 0.0,
+        'experimental_fifths2': 0.0,
+        'experimental_fifths3': 0.0,
+        'experimental_fifths4': 0.0,
+        'experimental_fifths5': 0.0
+    }
+
     # Get face image shape
     h, w, c = face_img.shape
 
     # Find the average width of the two eyes, this is our theoretical width of each 1/5 section
     right_eye_width = landmarks[39,0]-landmarks[36,0]
     left_eye_width = landmarks[45,0]-landmarks[42,0]
-    theoretical_section_width = (right_eye_width+left_eye_width)//2
+    fifths['theoretical_fifths'] = float((right_eye_width+left_eye_width)/2)
 
-    # Get the width of the contestant's face, this is our experimental width of each 1/5 section
-    experimental_section_width = w//5
+    # Get the widths of the five sections of the contestant's face (left to right)
+    fifths['experimental_fifths1'] = float(landmarks[36,0])
+    fifths['experimental_fifths2'] = float(abs(landmarks[36,0]-landmarks[39,0]))
+    fifths['experimental_fifths3'] = float(abs(landmarks[39,0]-landmarks[42,0]))
+    fifths['experimental_fifths4'] = float(abs(landmarks[42,0]-landmarks[45,0]))
+    fifths['experimental_fifths5'] = float(abs(landmarks[45,0]-w))
 
-    # Evaluate percent error
-    p_error = percent_error(experimental_section_width, theoretical_section_width)
-    return p_error
+    # Return results
+    return fifths
