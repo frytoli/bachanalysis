@@ -6,6 +6,28 @@ DSCI-510 Final Project
 
 Compare the features and place (the number of episodes the contestant was on the show for) of past contestants of ABC's The Bachelor and The Bachelorette.
 
+## TLDR
+
+Build the docker container:
+```
+docker build . --tag bach
+```
+
+Collect all data sets from remote sources:
+```
+docker run --volume $(pwd):/home/ bach collect.py
+```
+
+Collect all data sets from local sources:
+```
+docker run --volume $(pwd):/home/ bach collect.py --source local
+```
+
+Transform/preprocess data for data set 5 and perform evaluations with all algorithms:
+```
+docker run --volume $(pwd):/home/ bach transform.py
+```
+
 ## Data sets:
 
 1. General data about the shows
@@ -144,47 +166,42 @@ docker build collection/ --tag bach
 
 #### Arguments:
 
-* set: Required. An integer associated with the desired data set to be collected. This can be a list of integers.
+* set: Optional. Default: [1,2,3]. An integer associated with the desired data set to be collected. This can be a list of integers.
 * source: Optional. Default: "remote". The location from where to collect the data for the data set(s) -- local or remote. (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)
 * season: Optional. Default: all seasons (via data sets 1.1 and 1.2). An integer or list of integers associated with a desired season to collect data on. Only applicable with data set 2.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette or the URL of a contestant's profile page on the [Bachelor Nation Fandom Wiki](https://bachelor-nation.fandom.com). Only applicable with data set 3.
-* overwrite: Optional. Default: False. Overwrite any previously saved information from a data set in the database (dump and create a new table). Applicable with all data sets.
+* nowrite: Optional. Default: False. Do NOT overwrite any previously saved information from data set 5 in the database (do not dump and create a new table). Applicable with preprocess flag.
 
 #### Examples:
 
-Collect all available data for all data sets overwrite any old data from these data sets (drop and create new ds1, ds2, and ds3 tables) in the database:
+Collect all available data for all data sets from remote sources and overwrite any old data from these data sets (drop and create new ds1, ds2, and ds3 tables) in the database:
 ```
-docker run --volume $(pwd):/home/ bach collect.py 1 2 3 --overwrite
-```
-
-Collect data from The Bachelor/Bachelorette season 14:
-```
-docker run --volume $(pwd):/home/ bach collect.py 2 --season 14
+docker run --volume $(pwd):/home/ bach collect.py
 ```
 
-Collect data about The Bachelorette contestant Dale Moss:
+Collect data from The Bachelor/Bachelorette season 14 and overwrite any old data from these data sets (drop and create new ds2 table) in the database:
 ```
-docker run --volume $(pwd):/home/ bach collect.py 3 --contestant dale_moss
-```
-
-Collect data about The Bachelor contestant Cassie Randolph:
-```
-docker run --volume $(pwd):/home/ bach collect.py 3 --contestant "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
+docker run --volume $(pwd):/home/ bach collect.py --dataset 2 --season 14
 ```
 
-Collect data from all contestants from all seasons of The Bachelor/Bachelorette and source the data from a local location (./local/raw2.json):
+Collect data about The Bachelorette contestant Dale Moss and The Bachelor contestant Cassie Randolph and do NOT overwrite any old data from data set 3:
 ```
-docker run --volume $(pwd):/home/ bach collect.py 2 --source local
+docker run --volume $(pwd):/home/ bach collect.py --dataset 3 --contestant dale_moss "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph" --nowrite
+```
+
+Collect data from all contestants from all seasons of The Bachelor/Bachelorette, source the data from a local location (./local/raw2.json), and overwrite any old data from these data sets (drop and create new ds2 table) in the database::
+```
+docker run --volume $(pwd):/home/ bach collect.py --dataset 2 --source local
 ```
 
 Collect all available data for data sets 1 and 2 and overwrite any old data from these data sets (drop and create new ds1 and ds2 tables) in the database:
 ```
-docker run --volume $(pwd):/home/ bach collect.py 1 2 --overwrite
+docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2
 ```
 
 Collect all available data for data sets 1 and 2, collection available data from The Bachelor/Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, source the data from remote locations, and overwrite any old data in the pertinent database tables (drop and create new ds1, ds2, and ds3 tables):
 ```
-docker run --volume $(pwd):/home/ bach collect.py 1 2 3 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote --overwrite
+docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2 3 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote
 ```
 
 ## Transformation
@@ -212,31 +229,32 @@ docker build collection/ --tag bach
 
 #### Arguments:
 
-* preprocess: Optional. Default: False. Indication of desire to pre-process the data for data set 5.
-* overwrite: Optional. Default: False. Overwrite any previously saved information from data set 5 in the database (dump and create a new table). Applicable with preprocess flag.
-* evaluate: Optional. Default: ['thirds', 'fifths', 'golden']. A string algorithm to perform on data set 5.
+* preprocess: Optional. Default: True. Pre-process the data for data set 5.
+* nowrite: Optional. Default: False. Do NOT overwrite any previously saved information from data set 5 in the database (do not dump and create a new table). Applicable with preprocess flag.
+* evaluate: Optional. Default: True. Evaluate data set 5 with all given algorithmm.
+* algorithm: Optional. Default: ['thirds', 'fifths', 'golden']. A string name of an algorithm to evaluate data set 5 with.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette.
 
 #### Examples:
 
-Create data set 5 by transforming/preprocessing data from the other data sets and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+Create data set 5 by transforming/preprocessing data from the other data sets, overwrite any old data from these data sets (drop and create a new ds5 table) in the database, and perform all algorithms on all records in data set 5:
 ```
-docker run --volume $(pwd):/home/ bach transform.py --preprocess --overwrite
+docker run --volume $(pwd):/home/ bach transform.py
 ```
 
-Transform/preprocess data from the other data sets for The Bachelorette contestant Jason Tartick and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+Create data set 5 by transforming/preprocessing data from the other data sets and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
 ```
-docker run --volume $(pwd):/home/ bach transform.py --preprocess --contestant jason_tartick --overwrite
+docker run --volume $(pwd):/home/ bach transform.py --preprocess
+```
+
+Transform/preprocess data from the other data sets for The Bachelorette contestant Jason Tartick and do NOT overwrite any old data from these data sets in the database:
+```
+docker run --volume $(pwd):/home/ bach transform.py --preprocess --nowrite --contestant jason_tartick
 ```
 
 Perform rule of thirds and golden ratio analysis on all pre-processed contestant records in data set 5:
 ```
-docker run --volume $(pwd):/home/ bach transform.py --evaluate thirds golden
-```
-
-Create data set 5 by transforming/preprocessing data from the other data sets, overwrite any old data from these data sets (drop and create a new ds5 table) in the database, and perform all algorithms on all records in data set 5:
-```
-docker run --volume $(pwd):/home/ bach transform.py --preprocess --overwrite --evaluate
+docker run --volume $(pwd):/home/ bach transform.py --evaluate --algorithm thirds golden
 ```
 
 ## Analysis
