@@ -66,6 +66,7 @@ Guidance from: https://sefiks.com/2020/02/23/face-alignment-for-face-recognition
 def get_face_rotation(img):
 	# Load pre-trained classifiers
 	face_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml')
+	mouth_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_mcs_mouth.xml')
 	eye_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_eye.xml')
 
 	# Convert to grayscale
@@ -75,77 +76,80 @@ def get_face_rotation(img):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=6, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=10, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
 	face_index = 0
 	for face in faces:
 		(x, y, w, h) = face
 		# Get face image
 		face_img = img_gauss[y:y+h, x:x+w]
-		# Detect eyes JUST for second check that detected face is truly a face
-		eyes = eye_cascade.detectMultiScale(face_img)
-		# Ensure that at least one eye was detected
-		if len(eyes) > 0:
-			# Detect landmarks -- NOTE: it seems as if all landmarks are truly at point landmark-1
-			landmarks = detect_landmarks(x, y, w, h,img)
-			# Get the center point of (midpoint between) each eye
-			# Get top left and bottom right points of right eye
-			if landmarks[37, 1] > landmarks[38, 1]:
-				y = landmarks[38, 1]
-			else:
-				y = landmarks[37, 1]
-			right_top_left = (landmarks[36,0], y)
-			if landmarks[41, 1] > landmarks[40, 1]:
-				y = landmarks[41, 1]
-			else:
-				y = landmarks[40, 1]
-			right_bottom_right = (landmarks[39,0], y)
-			# Get top left and bottom right points of left eye
-			if landmarks[43, 1] > landmarks[44,1]:
-				y = landmarks[44,1]
-			else:
-				y = landmarks[43,1]
-			left_top_left = (landmarks[42,0], y)
-			if landmarks[47, 1] > landmarks[46, 1]:
-				y = landmarks[47, 1]
-			else:
-				y = landmarks[46, 1]
-			left_bottom_right = (landmarks[45,0], y)
-			# Get the center points of each eye (midpoint formula)
-			right_x = (right_top_left[0] + right_bottom_right[0])//2
-			right_y = (right_top_left[1] + right_bottom_right[1])//2
-			right_center = (right_x, right_y)
-			left_x = (left_top_left[0] + left_bottom_right[0])//2
-			left_y = (left_top_left[1] + left_bottom_right[1])//2
-			left_center = (left_x, left_y)
+		# Detect a mouth
+		mouth = mouth_cascade.detectMultiScale(face_img, scaleFactor=1.05, minNeighbors=6)
+		if len(mouth) > 0:
+			# Detect eyes JUST for second check that detected face is truly a face
+			eyes = eye_cascade.detectMultiScale(face_img, scaleFactor=1.05, minNeighbors=1)
+			# Ensure that at least one eye was detected
+			if len(eyes) > 0:
+				# Detect landmarks -- NOTE: it seems as if all landmarks are truly at point landmark-1
+				landmarks = detect_landmarks(x, y, w, h,img)
+				# Get the center point of (midpoint between) each eye
+				# Get top left and bottom right points of right eye
+				if landmarks[37, 1] > landmarks[38, 1]:
+					y = landmarks[38, 1]
+				else:
+					y = landmarks[37, 1]
+				right_top_left = (landmarks[36,0], y)
+				if landmarks[41, 1] > landmarks[40, 1]:
+					y = landmarks[41, 1]
+				else:
+					y = landmarks[40, 1]
+				right_bottom_right = (landmarks[39,0], y)
+				# Get top left and bottom right points of left eye
+				if landmarks[43, 1] > landmarks[44,1]:
+					y = landmarks[44,1]
+				else:
+					y = landmarks[43,1]
+				left_top_left = (landmarks[42,0], y)
+				if landmarks[47, 1] > landmarks[46, 1]:
+					y = landmarks[47, 1]
+				else:
+					y = landmarks[46, 1]
+				left_bottom_right = (landmarks[45,0], y)
+				# Get the center points of each eye (midpoint formula)
+				right_x = (right_top_left[0] + right_bottom_right[0])//2
+				right_y = (right_top_left[1] + right_bottom_right[1])//2
+				right_center = (right_x, right_y)
+				left_x = (left_top_left[0] + left_bottom_right[0])//2
+				left_y = (left_top_left[1] + left_bottom_right[1])//2
+				left_center = (left_x, left_y)
 
-			# Evaluate the location of the horizontal point and direction of rotation (clockwise or counterclockwise)
-			if left_y < right_y:
-				horiz_point = (right_x, left_y)
-				direction = -1 # clockwise
-			else:
-				horiz_point = (left_x, right_y)
-				direction = 1 # counterclockwise
+				# Evaluate the location of the horizontal point and direction of rotation (clockwise or counterclockwise)
+				if left_y < right_y:
+					horiz_point = (right_x, left_y)
+					direction = -1 # clockwise
+				else:
+					horiz_point = (left_x, right_y)
+					direction = 1 # counterclockwise
 
-			# Evaluate the edge lengths of the triangle made up of the line between the center of the eyes, a perfectly horizontal line, and a perfectly vertical line (with euclidean distance)
-			a = euclidean_distance(left_center, horiz_point)
-			b = euclidean_distance(right_center, left_center)
-			c = euclidean_distance(right_center, horiz_point)
+				# Evaluate the edge lengths of the triangle made up of the line between the center of the eyes, a perfectly horizontal line, and a perfectly vertical line (with euclidean distance)
+				a = euclidean_distance(left_center, horiz_point)
+				b = euclidean_distance(right_center, left_center)
+				c = euclidean_distance(right_center, horiz_point)
 
-			# Find the possible angle of rotation with arc cosine (inverse)
-			if b > 0 and c > 0: # Ensure no division by 0
-				arc_cos = (b*b + c*c - a*a)/(2*b*c)
-			else:
-				arc_cos = 0
-			angle = np.arccos(arc_cos)
-			# Convert angle from radians to degrees
-			angle = (angle * 180) / math.pi
+				# Find the possible angle of rotation with arc cosine (inverse)
+				if b > 0 and c > 0: # Ensure no division by 0
+					arc_cos = (b*b + c*c - a*a)/(2*b*c)
+				else:
+					arc_cos = 0
+				angle = np.arccos(arc_cos)
+				# Convert angle from radians to degrees
+				angle = (angle * 180) / math.pi
 
-			# If rotating clockwise, evaluate angle by negative evaluation of 90-angle (sum of all angles of a triangle = 180, we've already created a right 90 degree angle between the horizontal/vertical lines and line between center of the eyes)
-			if direction == -1:
-				angle = 0-(90 - angle)
+				# If rotating clockwise, evaluate angle by negative evaluation of 90-angle (sum of all angles of a triangle = 180, we've already created a right 90 degree angle between the horizontal/vertical lines and line between center of the eyes)
+				if direction == -1:
+					angle = 0-(90 - angle)
 
-			# Return the angle to rotate
-			return face_index, angle
+				# Return the angle to rotate
+				return face_index, angle
 		face_index += 1
 	return None, None
 
@@ -181,7 +185,7 @@ def process_face(name, b64photo):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=6, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=10, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
 	if len(faces) > 0:
 		# Handle the case that a face is not detected this time around or face_index is null
 		if not face_index or len(faces) <= face_index:
@@ -215,8 +219,8 @@ def process_face(name, b64photo):
 		# Crop photo to just contestant's face
 		img_cropped = img_original[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
 
-		# Resize image to height == 200 (for standardization)
-		resize_height = 200
+		# Resize image to height == 150 (for standardization)
+		resize_height = 150
 		# Calculate the ratio of the height and construct the dimensions
 		h, w, c = img_cropped.shape
 		ratio = resize_height / h
@@ -239,7 +243,9 @@ def process_face(name, b64photo):
 			record = {
 				'name': name,
 				'dlib_landmarks': json.dumps(landmarks), # Json dump nested list as a string
-				'face_photo': b64face
+				'face_photo': b64face,
+				'face_height': h,
+				'face_width': w
 			}
 		else:
 			record = {}
@@ -259,9 +265,11 @@ def eval_rule_of_thirds(name):
 	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
 	if len(contestants) > 0:
 		for contestant in contestants:
-			percent_error = rule_of_thirds.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			results = rule_of_thirds.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			# Compile list of dict results to update in document
+			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
 			# Update record in database
-			bachdb.update_doc('ds5', {'key':'rule_of_thirds','operator':'=','comparison':json.dumps(percent_error)}, {'key':'name','operator':'==','comparison':name})
+			bachdb.update_doc('ds5', to_set, {'key':'name','operator':'==','comparison':name})
 	# Clean memory
 	del contestants
 
@@ -272,9 +280,11 @@ def eval_rule_of_fifths(name):
 	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
 	if len(contestants) > 0:
 		for contestant in contestants:
-			percent_error = rule_of_fifths.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			results = rule_of_fifths.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			# Compile list of dict results to update in document
+			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
 			# Update record in database
-			bachdb.update_doc('ds5', {'key':'rule_of_fifths','operator':'=','comparison':json.dumps(percent_error)}, {'key':'name','operator':'==','comparison':name})
+			bachdb.update_doc('ds5', to_set, {'key':'name','operator':'==','comparison':name})
 	# Clean memory
 	del contestants
 
@@ -285,9 +295,11 @@ def eval_golden_ratio(name):
 	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
 	if len(contestants) > 0:
 		for contestant in contestants:
-			percent_error = golden_ratio.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			results = golden_ratio.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
+			# Compile list of dict results to update in document
+			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
 			# Update record in database
-			bachdb.update_doc('ds5', {'key':'golden_ratio','operator':'=','comparison':json.dumps(percent_error)}, {'key':'name','operator':'==','comparison':name})
+			bachdb.update_doc('ds5', to_set, {'key':'name','operator':'==','comparison':name})
 	# Clean memory
 	del contestants
 
@@ -295,9 +307,10 @@ def main():
 	# Retrieve args
 	parser = argparse.ArgumentParser(description='Process contestant data')
 	parser.add_argument('--preprocess', dest='preprocess', action='store_true', help='preprocess the data (rotate, crop, and identify dlib landmarks) for data set 5')
-	parser.add_argument('--algorithm', dest='algorithm', type=str, nargs='+', default=['thirds', 'fifths', 'golden', 'features'], help='a string algorithm name to perform (thirds, fifths, and/or golden)')
+	parser.add_argument('--evaluate', dest='evaluate', action='store_true', help='evaluate data set 5 with the algorithms')
+	parser.add_argument('--algorithm', dest='algorithm', type=str, nargs='+', default=['thirds','fifths','golden'], help='a string algorithm name to perform (thirds, fifths, and/or golden)')
 	parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (i.e. joelle_fletcher)')
-	parser.add_argument('--overwrite', dest='overwrite', action='store_true', help='overwrite table ds5 in the database. Only applicable with preprocess flag')
+	parser.add_argument('--nowrite', dest='nowrite', action='store_true', help='do NOT overwrite table ds5 in the database. Only applicable with preprocess flag')
 	args = parser.parse_args()
 
 	# Initialize multiprocessing pool with 5 threads
@@ -308,10 +321,21 @@ def main():
 	# Initialize data model handler object
 	bachdata = data.bachdata()
 
+	# Evaluate flags
+	if (args.preprocess and args.evaluate) or (not args.preprocess and not args.evaluate):
+		preprocess = True
+		evaluate = True
+	elif args.preprocess and not args.evaluate:
+		preprocess = True
+		evaluate = False
+	elif not args.preprocess and args.evaluate:
+		preprocess = False
+		evaluate = True
+
 	# If the user wants to preprocess the data
-	if args.preprocess:
+	if preprocess:
 		# Drop and create new data source tables, if applicable
-		if args.overwrite:
+		if not nowrite:
 			bachdb.create_table('ds5', bachdata.get_sql_table_values(5), drop_existing=True)
 
 		# If no contestants are given by the user, process every contestant from data set 3 in the database
@@ -333,7 +357,7 @@ def main():
 		pool_resp.get()
 
 	# Perform algorithms if specified
-	if len(args.algorithm) > 0:
+	if evaluate:
 		# Rule of thirds
 		if 'thirds' in args.algorithm:
 			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
@@ -346,17 +370,42 @@ def main():
 					for contestant in contestants:
 						eval_rule_of_thirds(contestant[0])
 			else:
-				contestants = []
 				for contestant in args.contestant:
 					names = contestant.lower().split('_')
 					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
 					eval_rule_of_thirds(name)
 		# Rule of fifths
 		if 'fifths' in args.algorithm:
-			print('fifths')
+			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
+			if len(args.contestant) == 0:
+				# Retrieve contestants' names (id)
+				contestants = bachdb.get_docs('ds5', column='name')
+				if len(contestants) == 0:
+					print(f'Mayday! Unable to evaluate rule of fifths. Has data set 5 been collected, preprocessed, and stored?')
+				else:
+					for contestant in contestants:
+						eval_rule_of_fifths(contestant[0])
+			else:
+				for contestant in args.contestant:
+					names = contestant.lower().split('_')
+					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
+					eval_rule_of_fifths(name)
 		# Golden ratio
 		if 'golden' in args.algorithm:
-			print('golden')
+			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
+			if len(args.contestant) == 0:
+				# Retrieve contestants' names (id)
+				contestants = bachdb.get_docs('ds5', column='name')
+				if len(contestants) == 0:
+					print(f'Mayday! Unable to evaluate golden ratio. Has data set 5 been collected, preprocessed, and stored?')
+				else:
+					for contestant in contestants:
+						eval_golden_ratio(contestant[0])
+			else:
+				for contestant in args.contestant:
+					names = contestant.lower().split('_')
+					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
+					eval_golden_ratio(name)
 
 if __name__ == '__main__':
 	main()
