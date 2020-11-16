@@ -76,7 +76,7 @@ def get_face_rotation(img):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=10, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=6, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
 	face_index = 0
 	for face in faces:
 		(x, y, w, h) = face
@@ -185,7 +185,7 @@ def process_face(name, b64photo):
 
 	# Detect contestant's face
 	# https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
-	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=10, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
+	faces = face_cascade.detectMultiScale(img_gauss, scaleFactor=1.05, minNeighbors=6, minSize=(20,20), flags=cv2.CASCADE_SCALE_IMAGE)
 	if len(faces) > 0:
 		# Handle the case that a face is not detected this time around or face_index is null
 		if not face_index or len(faces) <= face_index:
@@ -335,7 +335,7 @@ def main():
 	# If the user wants to preprocess the data
 	if preprocess:
 		# Drop and create new data source tables, if applicable
-		if not nowrite:
+		if not args.nowrite:
 			bachdb.create_table('ds5', bachdata.get_sql_table_values(5), drop_existing=True)
 
 		# If no contestants are given by the user, process every contestant from data set 3 in the database

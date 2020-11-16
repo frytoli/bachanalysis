@@ -152,7 +152,7 @@ def main():
     bachdata = data.bachdata()
 
     # Drop and create new data source tables, if applicable
-    if not nowrite:
+    if not args.nowrite:
         for ds in args.dataset:
             bachdb.create_table(f'ds{ds}', bachdata.get_sql_table_values(ds), drop_existing=True)
 
