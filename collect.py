@@ -136,11 +136,11 @@ Main
 def main():
     # Retrieve args
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('dataset', metavar='DS', type=int, nargs='+', help='an integer associated with a data set (i.e. 4)')
+    parser.add_argument('dataset', dest='dataset', type=int, nargs='+', default=[1, 2, 3], help='an integer associated with a data set (i.e. 4)')
     parser.add_argument('--source', dest='source', type=str, nargs='+', choices=['remote','local'], default='remote', help='where to gather the data for the data set(s) (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)')
     parser.add_argument('--season', dest='season', type=int, nargs='+', default=[], help='an integer season (only applicable with data sources 3 and 4) (i.e. 11)')
     parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (only applicable with data source 5) (i.e. joelle_fletcher)')
-    parser.add_argument('--overwrite', dest='overwrite', action='store_true', help='overwrite applicable table(s) in the database')
+    parser.add_argument('--nowrite', dest='nowrite', action='store_true', help='do NOT overwrite table ds5 in the database. Only applicable with preprocess flag')
     args = parser.parse_args()
 
     # Initialize multiprocessing pool with 5 threads
@@ -152,7 +152,7 @@ def main():
     bachdata = data.bachdata()
 
     # Drop and create new data source tables, if applicable
-    if args.overwrite:
+    if not nowrite:
         for ds in args.dataset:
             bachdb.create_table(f'ds{ds}', bachdata.get_sql_table_values(ds), drop_existing=True)
 
