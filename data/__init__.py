@@ -51,7 +51,7 @@ class bachdata():
                 'dlib_landmarks': '', # '' for null
                 'face_photo': '', # '' for null
                 'rule_of_thirds': '', # '' for null
-                'rule_of_fifths': '', # '' for null
+                'rule_of_fifths': 0.0, # 0.0 for null
                 'golden_ratio': '' # '' for null
             }
         }
@@ -64,6 +64,8 @@ class bachdata():
                 sql_values.append([key, 'text'])
             elif type(value) == int:
                 sql_values.append([key, 'integer'])
+            elif type(value) == float:
+                sql_values.append([key, 'real'])
         return sql_values
 
     # Model provided json (dict) data
