@@ -81,9 +81,33 @@ Data set 5:
   'name': '', # '' for null
   'dlib_landmarks': '', # '' for null
   'face_photo': '', # '' for null
-  'rule_of_thirds': '', # '' for null
-  'rule_of_fifths': '', # '' for null
-  'golden_ratio': '' # '' for null
+  'face_height': 0, # 0 for null
+  'face_width': 0, # 0 for null
+  'theoretical_thirds': 0.0, # 0.0 for null
+  'experimental_thirds1': 0.0, # 0.0 for null
+  'experimental_thirds2': 0.0, # 0.0 for null
+  'experimental_thirds3': 0.0, # 0.0 for null
+  'theoretical_fifths': 0.0, # 0.0 for null
+  'experimental_fifths1': 0.0, # 0.0 for null
+  'experimental_fifths2': 0.0, # 0.0 for null
+  'experimental_fifths3': 0.0, # 0.0 for null
+  'experimental_fifths4': 0.0, # 0.0 for null
+  'experimental_fifths5': 0.0, # 0.0 for null
+  'hw_ratio': 0.0, # 0.0 for null
+  'v1_ratio': 0.0, # 0.0 for null
+  'v2_ratio': 0.0, # 0.0 for null
+  'v3_ratio': 0.0, # 0.0 for null
+  'v4_ratio': 0.0, # 0.0 for null
+  'v5_ratio': 0.0, # 0.0 for null
+  'v6_ratio': 0.0, # 0.0 for null
+  'v7_ratio': 0.0, # 0.0 for null
+  'h1_ratio': 0.0, # 0.0 for null
+  'h2_ratio': 0.0, # 0.0 for null
+  'h3_ratio': 0.0, # 0.0 for null
+  'h4_ratio': 0.0, # 0.0 for null
+  'h5_ratio': 0.0, # 0.0 for null
+  'h6_ratio': 0.0, # 0.0 for null
+  'h7_ratio': 0.0 # 0.0 for null
 }
 ```
 
@@ -179,8 +203,6 @@ eval_rule_of_fifths(b64face)
 
 eval_golden_ratio(b64face)
 
-eval_feature_sizes(b64face)
-
 ### How to Run
 
 Build the docker container:
@@ -190,19 +212,31 @@ docker build collection/ --tag bach
 
 #### Arguments:
 
+* preprocess: Optional. Default: False. Indication of desire to pre-process the data for data set 5.
+* overwrite: Optional. Default: False. Overwrite any previously saved information from data set 5 in the database (dump and create a new table). Applicable with preprocess flag.
+* evaluate: Optional. Default: ['thirds', 'fifths', 'golden']. A string algorithm to perform on data set 5.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette.
-* overwrite: Optional. Default: False. Overwrite any previously saved information from a data set in the database (dump and create a new table). Applicable with all data sets.
 
 #### Examples:
 
-Create data set 5 by transforming data from the other data sets and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+Create data set 5 by transforming/preprocessing data from the other data sets and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
 ```
-docker run --volume $(pwd):/home/ bach transform.py --overwrite
+docker run --volume $(pwd):/home/ bach transform.py --preprocess --overwrite
 ```
 
-Transforming data from the other data sets for The Bachelorette contestant Jason Tartick and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+Transform/preprocess data from the other data sets for The Bachelorette contestant Jason Tartick and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
 ```
-docker run --volume $(pwd):/home/ bach transform.py --contestant jason_tartick --overwrite
+docker run --volume $(pwd):/home/ bach transform.py --preprocess --contestant jason_tartick --overwrite
+```
+
+Perform rule of thirds and golden ratio analysis on all pre-processed contestant records in data set 5:
+```
+docker run --volume $(pwd):/home/ bach transform.py --evaluate thirds golden
+```
+
+Create data set 5 by transforming/preprocessing data from the other data sets, overwrite any old data from these data sets (drop and create a new ds5 table) in the database, and perform all algorithms on all records in data set 5:
+```
+docker run --volume $(pwd):/home/ bach transform.py --preprocess --overwrite --evaluate
 ```
 
 ## Analysis
@@ -222,7 +256,7 @@ To-do
   - [x] Info of all Bachelor/Bachelorette cast members: https://bachelor-nation.fandom.com/wiki/Alex_Michel (enumerate names)
   - [x] Popularity and additional photos of cast members: https://instagram.com
   - [x] "Transformed" data from other data sets
-- [ ] Project outline
+- [x] Project outline
 
 ### Collect Data
 
@@ -240,14 +274,15 @@ To-do
   - [x] Seasons
   - [x] Contestants
   - [x] Overwrite
+  - [x] Evaluate
+  - [x] Preprocess
 - [x] Dockerize
 - [ ] Collect all the datas!
 - [ ] "Transform" the data into a fifth data set
   - [x] Pre-process contestant photos (face images and dlib landmarks)
-  - [ ] Rule of thirds evaluation
-  - [ ] Rule of fifths evaluation
-  - [ ] Golden ratio evaluation
-  - [ ] Facial feature measurements
+  - [x] Rule of thirds evaluation
+  - [x] Rule of fifths evaluation
+  - [x] Golden ratio evaluation
 
 ### Model and Store Data
 
@@ -263,7 +298,7 @@ To-do
       - [x] Add 'season' column
     - [x] Data set 3 (Bachelor Nation)
     - [ ] Data set 4 (Instagram)
-    - [ ] Data set 5 (Evaluated)
+    - [x] Data set 5 (Evaluated)
     - [ ] Write data set data from database to an output file
 - [x] Data storage (SQL database)
   - [x] DB class that interacts with SQL database
