@@ -16,7 +16,6 @@ def percent_error(experimental, theoretical):
         return 0
 
 def evaluate(face_img, landmarks):
-    # Return a list of the sizes of the three horizontal parts of the face
     # Save measurement of three equal parts of face
     h, w, c = face_img.shape
     theoretical_h = h//3
