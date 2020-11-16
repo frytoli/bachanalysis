@@ -8,17 +8,18 @@ Take in a face image and evaluate how well it fits the rule of thirds:
 
 import cv2
 
-def percent_error(experimental, theoretical):
-    if theoretical != 0:
-        return (abs(experimental-theoretical)/abs(theoretical))*100
-    else:
-        print('Mayday! Cannot divide by zero')
-        return 0
-
 def evaluate(face_img, landmarks):
+    # Create thirds variable
+    thirds = {
+        'theoretical_thirds': 0.0,
+        'experimental_thirds1': 0.0,
+        'experimental_thirds2': 0.0,
+        'experimental_thirds3': 0.0
+    }
+
     # Save measurement of three equal parts of face
     h, w, c = face_img.shape
-    theoretical_h = h//3
+    thirds['theoretical_thirds'] = h/3
 
     # Get height of face from hairline (top of image) to eyebrows
     # Get midpoint of eyebrows
@@ -32,18 +33,16 @@ def evaluate(face_img, landmarks):
         left_bottom_left = (landmarks[26,0], landmarks[22,1])
     else:
         left_bottom_left = (landmarks[26,0], landmarks[26,1])
-    right_center = ((right_top_right[0]+right_bottom_left[0])//2, (right_top_right[1]+right_bottom_left[1])//2)
-    left_center = ((left_top_right[0]+left_bottom_left[0])//2, (left_top_right[1]+left_bottom_left[1])//2)
+    right_center = ((right_top_right[0]+right_bottom_left[0])/2, (right_top_right[1]+right_bottom_left[1])/2)
+    left_center = ((left_top_right[0]+left_bottom_left[0])/2, (left_top_right[1]+left_bottom_left[1])/2)
     # Get height distance from top of image to eyebrow midpoint
-    third1 = (right_center[1]+left_center[1])//2
+    thirds['experimental_thirds1'] = float((right_center[1]+left_center[1])/2)
 
     # Get height distance from eyebrows to bottom of nose
-    third2 = landmarks[33,1]-third1
+    thirds['experimental_thirds2'] = float(landmarks[33,1]-thirds['experimental_thirds1'])
 
     # Get height distance from bottom of nose to chin (bottom of image)
-    third3 = h-landmarks[33,1]
+    thirds['experimental_thirds3'] = float(h-landmarks[33,1])
 
-    # Evaluate the percent error of each part
-    percent_errors = [percent_error(third, theoretical_h) for third in [third1, third2, third3]]
-    # Return
-    return percent_errors
+    # Return results
+    return thirds
