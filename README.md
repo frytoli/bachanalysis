@@ -207,17 +207,17 @@ docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2 3 --season 8 9 1
 
 Create a fifth data by applying transformation methods to data from the other data sets. This fifth data set will contain more granular data of each candidate and will be the data set primarily referenced during analysis.
 
-### Transformations
+### Explanation of Preprocessing
 
-process_face(b64photo)
+![](media/brian_bowles/original.jpeg) ![](media/brian_bowles/rotated.jpeg) ![](media/brian_bowles/cropped.jpeg)
 
-get_face_rotation(img)
+![](media/amanda_goerlitz/original.jpeg) ![](media/amanda_goerlitz/rotated.jpeg) ![](media/amanda_goerlitz/cropped.jpeg)
 
-eval_rule_of_thirds(b64face)
+### Explanation of the Beauty Algorithms
 
-eval_rule_of_fifths(b64face)
+![](media/brian_bowles/thirds.jpeg) ![](media/brian_bowles/fifths.jpeg) ![](media/brian_bowles/golden.jpeg)
 
-eval_golden_ratio(b64face)
+![](media/amanda_goerlitz/thirds.jpeg) ![](media/amanda_goerlitz/fifths.jpeg) ![](media/amanda_goerlitz/golden.jpeg)
 
 ### How to Run
 
