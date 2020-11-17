@@ -117,13 +117,16 @@ def scrape3(id, contestant):
 '''
 Data set from local file
 '''
-def set_id(profile_url):
+def set_ids():
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
-    # Find record in data set 2 that corresponds to the given profile url
-    id = bachdb.get_docs('ds2', column='id', filters=[{'key':'profile_url','operator':'==','comparison':profile_url}])[0][0]
-    # Set the id in the database
-    bachdb.update_doc('ds3', [{'key':'id','operator':'==','comparison':str(id)}], {'key':'profile_url','operator':'==','comparison':profile_url})
+    # Get profile_urls of all documents for which to set ids
+    profile_urls = bachdb.get_docs('ds3', column='profile_url')
+    for url in profile_urls:
+        # Find record in data set 2 that corresponds to the given profile url
+        id = bachdb.get_docs('ds2', column='id', filters=[{'key':'profile_url','operator':'==','comparison':url[0]}])[0][0]
+        # Set the id in the database
+        bachdb.update_doc('ds3', [{'key':'id','operator':'==','comparison':str(id)}], {'key':'profile_url','operator':'==','comparison':url[0]})
 
 def getlocal(ds):
     # Initialize sqldb object
@@ -173,12 +176,7 @@ def main():
         pool_resp = pool.map_async(getlocal, args.dataset)
         pool_resp.get()
         # Set all ids to match ds2 and ds3
-        docs = [doc[0] for doc in bachdb.get_docs('ds3', column='profile_url')]
-        if len(docs) > 0:
-            pool_resp = pool.map_async(set_id, docs)
-            pool_resp.get()
-        else:
-            print('Mayday! Unable to set ids for data set 3. Has data set 2 been collected and stored?')
+        set_ids()
     # Else, scrape the data from remote sources
     else:
         for ds in args.dataset:
