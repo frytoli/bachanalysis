@@ -18,7 +18,7 @@ Collect all data sets from remote sources:
 docker run --volume $(pwd):/home/ bach collect.py
 ```
 
-Collect all data sets from local sources:
+Collect all data sets from local sources (note that all local raw files must exist in the local/ directory and be named rawN.json, where N is the integer data set such as raw1.json for data set 1):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --source local
 ```
