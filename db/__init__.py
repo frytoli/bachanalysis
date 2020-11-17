@@ -94,19 +94,19 @@ class bachdb():
             if len(to_set_strs) > 0:
                 if len(where) > 0 and type(where)==dict:
                     where_strs = self.__prepare_conditional_str(table, [where])
-                if len(where_strs) > 0:
-                    try:
-                        self.cur.execute(f'''Update {table} set {', '.join(to_set_strs)} where {where_strs[0]}''')
-                    except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
-                        print(f'''Sqlite3 error when updating {', '.join(to_set_strs)} where {where_strs[0]} in {table}: {e}''')
-                else:
-                    try:
-                        self.cur.execute(f'''Update {table} set {to_set_strs[0]}''')
-                    except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
-                        print(f'''Sqlite3 error when updating {to_set_strs[0]} in {table}: {e}''')
-                # Commit and close connection
-                self.conn.commit()
-                self.conn.close
+                    if len(where_strs) > 0:
+                        try:
+                            self.cur.execute(f'''Update {table} set {', '.join(to_set_strs)} where {where_strs[0]}''')
+                        except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
+                            print(f'''Sqlite3 error when updating {', '.join(to_set_strs)} where {where_strs[0]} in {table}: {e}''')
+                    else:
+                        try:
+                            self.cur.execute(f'''Update {table} set {to_set_strs[0]}''')
+                        except (sqlite3.OperationalError, sqlite3.ProgrammingError) as e:
+                            print(f'''Sqlite3 error when updating {to_set_strs[0]} in {table}: {e}''')
+                    # Commit and close connection
+                    self.conn.commit()
+                    self.conn.close
 
     '''
     Query and return documents from a given table
