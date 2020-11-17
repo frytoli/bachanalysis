@@ -139,5 +139,5 @@ cython_debug/
 
 # Local
 *.DS_Store
-local
+local/*.db
 media/*.xml
