@@ -42,96 +42,13 @@ docker run --volume $(pwd):/home/ bach transform.py
 
 ## Data Models and Data Storage
 
+Data is stored in a SQL database. The structure of this database, as defined by the data model, is as follows:
+
+![](media/bachdb.png)
+
 ### Data Class
 
-The data is modeled as JSON data. The models for each data set (including subsets) are as follows:
-
-Data sets 1.1 and 1.2:
-```
-{
-  'season': 0, # -1 for null
-  'original_run': '', # '' for null
-  'suitor': '', # '' for null
-  'winner': '', # '' for null
-  'runnersup': '', # '' for null
-  'proposal': 0, # 0 for no, 1 for yes, -1 for null
-  'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
-  'still_together': 0, # 0 for no, 1 for yes, -1 for null
-  'relationship_notes':'' # '' for null
-}
-```
-
-Data sets 2.1 and 2.2:
-```
-{
-  'name': '', # '' for null
-  'age': 0, # -1 for null
-  'hometown': '', # '' for null
-  'occupation': '', # '' for null
-  'eliminated': '', # '' for null
-  'season': 0, # -1 for null
-  'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
-  'profile_url': '',
-  'place': 0 # -1 for null
-}
-```
-
-Data set 3:
-```
-{
-  'name': '', # '' for null
-  'photo': '', # '' for null
-  'born': '', # '' for null
-  'hometown': '', # '' for null
-  'occupation': '', # '' for null
-  'seasons': '', # '' for null
-  'social_media': '', # '' for null
-  'height': '' # '' for null
-}
-```
-
-Data set 4:
-```
-{
-  TBD
-}
-```
-
-Data set 5:
-```
-{
-  'name': '', # '' for null
-  'dlib_landmarks': '', # '' for null
-  'face_photo': '', # '' for null
-  'face_height': 0, # 0 for null
-  'face_width': 0, # 0 for null
-  'theoretical_thirds': 0.0, # 0.0 for null
-  'experimental_thirds1': 0.0, # 0.0 for null
-  'experimental_thirds2': 0.0, # 0.0 for null
-  'experimental_thirds3': 0.0, # 0.0 for null
-  'theoretical_fifths': 0.0, # 0.0 for null
-  'experimental_fifths1': 0.0, # 0.0 for null
-  'experimental_fifths2': 0.0, # 0.0 for null
-  'experimental_fifths3': 0.0, # 0.0 for null
-  'experimental_fifths4': 0.0, # 0.0 for null
-  'experimental_fifths5': 0.0, # 0.0 for null
-  'hw_ratio': 0.0, # 0.0 for null
-  'v1_ratio': 0.0, # 0.0 for null
-  'v2_ratio': 0.0, # 0.0 for null
-  'v3_ratio': 0.0, # 0.0 for null
-  'v4_ratio': 0.0, # 0.0 for null
-  'v5_ratio': 0.0, # 0.0 for null
-  'v6_ratio': 0.0, # 0.0 for null
-  'v7_ratio': 0.0, # 0.0 for null
-  'h1_ratio': 0.0, # 0.0 for null
-  'h2_ratio': 0.0, # 0.0 for null
-  'h3_ratio': 0.0, # 0.0 for null
-  'h4_ratio': 0.0, # 0.0 for null
-  'h5_ratio': 0.0, # 0.0 for null
-  'h6_ratio': 0.0, # 0.0 for null
-  'h7_ratio': 0.0 # 0.0 for null
-}
-```
+The data is modeled as above in JSON format.
 
 #### Methods
 
@@ -148,9 +65,21 @@ model_many(ds, datas): Take-in an integer data set number and a list of raw json
 
 ### DB Class
 
-Data is stored in a SQL database. The structure of this database, as defined by the data model, is as follows:
+Data is stored in a SQL database and is accessed via the sqlite3 package.
 
-![](media/bachdb.png)
+#### Methods
+
+create_table(table, values, drop_existing=False):
+
+insert_doc(table, data):
+
+insert_docs(table, datas):
+
+update_doc(table, to_set, where):
+
+get_docs(table, column='*', filters=[]):
+
+get_max_val(table, column, filters=[]):
 
 ## Collection
 
