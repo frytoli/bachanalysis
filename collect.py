@@ -93,7 +93,7 @@ Scrape data Set 3
 Collect photos and additional physical information of one Bachelor/Bachelorette cast member or all Bachelor/Bachelorette cast members
 https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
-def scrape3(contestant):
+def scrape3(id, contestant):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
     # Initialize data model handler object
@@ -104,6 +104,10 @@ def scrape3(contestant):
     scraped = bachelornation.scrape_contestant(contestant)
     # Continue if response is not empty
     if len(scraped) > 0:
+        # Add id to raw record
+        scraped['id'] = id
+        # Add profile_url to record
+        scraped['profile_url'] = contestant
         # Model the raw data
         modeled_data = bachdata.model_one(3, scraped)
         # Add the modeled data to ds3 table
@@ -113,18 +117,26 @@ def scrape3(contestant):
 '''
 Data set from local file
 '''
+def set_id(profile_url):
+    # Initialize sqldb object
+    bachdb = db.bachdb(PATH_TO_DB)
+    # Find record in data set 2 that corresponds to the given profile url
+    id = bachdb.get_docs('ds2', column='id', filters=[{'key':'profile_url','operator':'==','comparison':profile_url}])[0][0]
+    # Set the id in the database
+    bachdb.update_doc('ds3', [{'key':'id','operator':'==','comparison':str(id)}], {'key':'profile_url','operator':'==','comparison':profile_url})
+
 def getlocal(ds):
     # Initialize sqldb object
     bachdb = db.bachdb(PATH_TO_DB)
     # Initialize data model handler object
     bachdata = data.bachdata()
     # Validate existence of file
-    if os.path.exists(os.path.join(PATH_TO_VOLUME), f'raw{ds}.json'):
+    if os.path.exists(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json')):
         # Read local file in from ./local/
         with open(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json'), 'r') as injson:
             raw_data = json.load(injson)
         # Model the raw data
-        modeled_data = bachdata.model_many(ds, scraped)
+        modeled_data = bachdata.model_many(ds, raw_data)
         # Add the modeled data to ds1 table
         bachdb.insert_docs(f'ds{ds}', modeled_data)
     else:
@@ -136,8 +148,8 @@ Main
 def main():
     # Retrieve args
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('dataset', dest='dataset', type=int, nargs='+', default=[1, 2, 3], help='an integer associated with a data set (i.e. 4)')
-    parser.add_argument('--source', dest='source', type=str, nargs='+', choices=['remote','local'], default='remote', help='where to gather the data for the data set(s) (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)')
+    parser.add_argument('--dataset', dest='dataset', type=int, nargs='+', default=[1, 2, 3], help='an integer associated with a data set (i.e. 4)')
+    parser.add_argument('--source', dest='source', type=str, choices=['remote','local'], default='remote', help='where to gather the data for the data set(s) (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)')
     parser.add_argument('--season', dest='season', type=int, nargs='+', default=[], help='an integer season (only applicable with data sources 3 and 4) (i.e. 11)')
     parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (only applicable with data source 5) (i.e. joelle_fletcher)')
     parser.add_argument('--nowrite', dest='nowrite', action='store_true', help='do NOT overwrite table ds5 in the database. Only applicable with preprocess flag')
@@ -160,6 +172,13 @@ def main():
     if args.source == 'local':
         pool_resp = pool.map_async(getlocal, args.dataset)
         pool_resp.get()
+        # Set all ids to match ds2 and ds3
+        docs = [doc[0] for doc in bachdb.get_docs('ds3', column='profile_url')]
+        if len(docs) > 0:
+            pool_resp = pool.map_async(set_id, docs)
+            pool_resp.get()
+        else:
+            print('Mayday! Unable to set ids for data set 3. Has data set 2 been collected and stored?')
     # Else, scrape the data from remote sources
     else:
         for ds in args.dataset:
@@ -192,14 +211,19 @@ def main():
                 # If no contestants are given by user...
                 if len(args.contestant) == 0:
                     # Retrieve all contestants from database (note the returned value is a list of tuples)
-                    contestants = [contestant[0] for contestant in bachdb.get_docs('ds2', column='profile_url')]
+                    contestants = bachdb.get_docs('ds2', column='id, profile_url')
                     # If no data was retrieved, alert the user
                     if len(contestants) == 0:
                         print(f'Mayday! Unable to collect data set 3. Has data set 2 been collected and stored?')
                 else:
-                    contestants = args.contestant
+                    contestants = []
+                    for contestant in args.contestant:
+                        names = contestant.lower().split('_')
+                        name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
+                        # Save contestant's document id and profile_url
+                        contestants.append(bachdb.get_doc('ds2', column='id, profile_url', filters=[{'key':'name', 'operator':'==', 'comparison':name}])[0])
                 # Multiprocess scraping data set 3
-                pool_resp = pool.map_async(scrape3, contestants)
+                pool_resp = pool.starmap_async(scrape3, contestants)
                 pool_resp.get()
 
 if __name__ == '__main__':
