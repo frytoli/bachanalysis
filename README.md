@@ -265,11 +265,8 @@ To-do
 
 Meisner, G. B., & Araujo, R. (2018). The Golden Ratio: The Divine Beauty of Mathematics (Illustrated ed.).Race Point Publishing.
 
-Meisner, G. (2020, September 28). Meisner Beauty Guide for Golden Ratio Facial Analysis. The Golden Ratio: Phi, 1.618.
-  https://www.goldennumber.net/meisner-beauty-guide-golden-ratio-facial-analysis/
+Meisner, G. (2020, September 28). Meisner Beauty Guide for Golden Ratio Facial Analysis. The Golden Ratio: Phi, 1.618. https://www.goldennumber.net/meisner-beauty-guide-golden-ratio-facial-analysis/
 
-Rajendra, P. P. (2017). FaceShape [Python program to determine the face shape of an individual from a given photo].
-  https://github.com/rajendra7406-zz/FaceShape
+Rajendra, P. P. (2017). FaceShape [Python program to determine the face shape of an individual from a given photo]. https://github.com/rajendra7406-zz/FaceShape
 
-Serengil, S. (2020, October 1). Face Alignment for Face Recognition in Python within OpenCV. Sefik Ilkin Serengil.
-  https://sefiks.com/2020/02/23/face-alignment-for-face-recognition-in-python-within-opencv/
+Serengil, S. (2020, October 1). Face Alignment for Face Recognition in Python within OpenCV. Sefik Ilkin Serengil. https://sefiks.com/2020/02/23/face-alignment-for-face-recognition-in-python-within-opencv/
