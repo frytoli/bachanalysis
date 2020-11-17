@@ -149,9 +149,8 @@ model_many(ds, datas): Take-in an integer data set number and a list of raw json
 ### DB Class
 
 Data is stored in a SQL database. The structure of this database, as defined by the data model, is as follows:
-```
-Placeholder for database diagram (including relationships)
-```
+
+![](media/bachdb.png)
 
 ## Collection
 
