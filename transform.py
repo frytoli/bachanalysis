@@ -156,7 +156,7 @@ def get_face_rotation(img):
 '''
 Crop a contestant's photo to just their face
 '''
-def process_face(name, b64photo):
+def process_face(id, name, b64photo):
 	# Initialize sqldb object
 	bachdb = db.bachdb(PATH_TO_DB)
 	# Initialize data model handler object
@@ -241,6 +241,7 @@ def process_face(name, b64photo):
 
 			# Model the data
 			record = {
+				'id': str(id),
 				'name': name,
 				'dlib_landmarks': json.dumps(landmarks), # Json dump nested list as a string
 				'face_photo': b64face,
@@ -258,48 +259,48 @@ def process_face(name, b64photo):
 	# Explicity remove record from memory
 	del record
 
-def eval_rule_of_thirds(name):
+def eval_rule_of_thirds(id):
 	# Initialize sqldb object
 	bachdb = db.bachdb(PATH_TO_DB)
 	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
-	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'id', 'operator':'==', 'comparison':id}])
 	if len(contestants) > 0:
 		for contestant in contestants:
 			results = rule_of_thirds.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
 			# Compile list of dict results to update in document
 			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
 			# Update record in database
-			bachdb.update_doc('ds5', to_set, {'key':'name','operator':'==','comparison':name})
+			bachdb.update_doc('ds5', to_set, {'key':'id','operator':'==','comparison':id})
 	# Clean memory
 	del contestants
 
-def eval_rule_of_fifths(name):
+def eval_rule_of_fifths(id):
 	# Initialize sqldb object
 	bachdb = db.bachdb(PATH_TO_DB)
 	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
-	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'id', 'operator':'==', 'comparison':id}])
 	if len(contestants) > 0:
 		for contestant in contestants:
 			results = rule_of_fifths.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
 			# Compile list of dict results to update in document
 			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
 			# Update record in database
-			bachdb.update_doc('ds5', to_set, {'key':'name','operator':'==','comparison':name})
+			bachdb.update_doc('ds5', to_set, {'key':'id','operator':'==','comparison':id})
 	# Clean memory
 	del contestants
 
-def eval_golden_ratio(name):
+def eval_golden_ratio(id):
 	# Initialize sqldb object
 	bachdb = db.bachdb(PATH_TO_DB)
 	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
-	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'id', 'operator':'==', 'comparison':id}])
 	if len(contestants) > 0:
 		for contestant in contestants:
 			results = golden_ratio.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
 			# Compile list of dict results to update in document
 			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
 			# Update record in database
-			bachdb.update_doc('ds5', to_set, {'key':'name','operator':'==','comparison':name})
+			bachdb.update_doc('ds5', to_set, {'key':'id','operator':'==','comparison':id})
 	# Clean memory
 	del contestants
 
@@ -341,7 +342,7 @@ def main():
 		# If no contestants are given by the user, process every contestant from data set 3 in the database
 		if len(args.contestant) == 0:
 			# Retrieve contestants' names (id) and photos
-			contestants = bachdb.get_docs('ds3', column='name, photo')
+			contestants = bachdb.get_docs('ds3', column='id, name, photo')
 			if len(contestants) == 0:
 				print(f'Mayday! Unable to compile data set 5. Has data set 3 been collected and stored?')
 		else:
@@ -349,7 +350,7 @@ def main():
 			for contestant in args.contestant:
 				names = contestant.lower().split('_')
 				name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-				contestant = bachdb.get_docs('ds3', column='name, photo', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+				contestant = bachdb.get_docs('ds3', column='id, name, photo', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
 				if len(contestant) > 0:
 					contestants += contestant
 		# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
@@ -363,7 +364,7 @@ def main():
 			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
 			if len(args.contestant) == 0:
 				# Retrieve contestants' names (id)
-				contestants = bachdb.get_docs('ds5', column='name')
+				contestants = bachdb.get_docs('ds5', column='id')
 				if len(contestants) == 0:
 					print(f'Mayday! Unable to evaluate rule of thirds. Has data set 5 been collected, preprocessed, and stored?')
 				else:
@@ -373,13 +374,15 @@ def main():
 				for contestant in args.contestant:
 					names = contestant.lower().split('_')
 					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-					eval_rule_of_thirds(name)
+					# Get contestant's document id
+					contestant = bachdb.get_docs('ds5', column='id', filters=[{'key':'name', 'operator':'==', 'comparison':name}])[0][0]
+					eval_rule_of_thirds(contestant)
 		# Rule of fifths
 		if 'fifths' in args.algorithm:
 			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
 			if len(args.contestant) == 0:
 				# Retrieve contestants' names (id)
-				contestants = bachdb.get_docs('ds5', column='name')
+				contestants = bachdb.get_docs('ds5', column='id')
 				if len(contestants) == 0:
 					print(f'Mayday! Unable to evaluate rule of fifths. Has data set 5 been collected, preprocessed, and stored?')
 				else:
@@ -389,13 +392,15 @@ def main():
 				for contestant in args.contestant:
 					names = contestant.lower().split('_')
 					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-					eval_rule_of_fifths(name)
+					# Get contestant's document id
+					contestant = bachdb.get_docs('ds5', column='id', filters=[{'key':'name', 'operator':'==', 'comparison':name}])[0][0]
+					eval_rule_of_fifths(contestant)
 		# Golden ratio
 		if 'golden' in args.algorithm:
 			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
 			if len(args.contestant) == 0:
 				# Retrieve contestants' names (id)
-				contestants = bachdb.get_docs('ds5', column='name')
+				contestants = bachdb.get_docs('ds5', column='id')
 				if len(contestants) == 0:
 					print(f'Mayday! Unable to evaluate golden ratio. Has data set 5 been collected, preprocessed, and stored?')
 				else:
@@ -405,7 +410,9 @@ def main():
 				for contestant in args.contestant:
 					names = contestant.lower().split('_')
 					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-					eval_golden_ratio(name)
+					# Get contestant's document id
+					contestant = bachdb.get_docs('ds5', column='id', filters=[{'key':'name', 'operator':'==', 'comparison':name}])[0][0]
+					eval_golden_ratio(contestant)
 
 if __name__ == '__main__':
 	main()
