@@ -6,6 +6,7 @@
 
 import json
 import math
+import uuid
 
 class bachdata():
     def __init__(self):
@@ -23,6 +24,7 @@ class bachdata():
                 'relationship_notes':'' # '' for null
             },
             2: {
+                'id': '',
                 'name': '', # '' for null
                 'age': 0, # -1 for null
                 'hometown': '', # '' for null
@@ -34,8 +36,10 @@ class bachdata():
                 'place': 0 # -1 for null
             },
             3: {
+                'id': '',
                 'name': '', # '' for null
                 'photo': '', # '' for null
+                'profile_url': '', # '' for null
                 'born': '', # '' for null
                 'hometown': '', # '' for null
                 'occupation': '', # '' for null
@@ -44,9 +48,14 @@ class bachdata():
                 'height': '' # '' for null
             },
             4: {
-                'temp': ''
+                'id': '',
+                'name': '', # '' for null
+                'handle': '',  # '' for null
+                'followers': 0, # -1 for null
+                'following': 0 # -1 for null
             },
             5: {
+                'id': '',
                 'name': '', # '' for null
                 'dlib_landmarks': '', # '' for null
                 'face_photo': '', # '' for null
@@ -158,7 +167,11 @@ class bachdata():
                                     modeled_data[key] = ''
                                     print(f'Value {data[key]} was not able to be cast to string')
                 else:
-                    modeled_data[key] = value
+                    # If id has not yet been set, set it now (this should only be applicable when modeling data set 2)
+                    if key == 'id':
+                        modeled_data[key] = str(uuid.uuid4())
+                    else:
+                        modeled_data[key] = value
         else:
             print('Mayday! Only a json object is permitted')
             return {}
