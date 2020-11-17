@@ -134,7 +134,7 @@ docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2 3 --season 8 9 1
 
 ## Transformation
 
-Create a fifth data by applying transformation methods to data from the other data sets. This fifth data set will contain more granular data of each candidate and will be the data set primarily referenced during analysis.
+Create a fifth data set by applying transformation methods to data from the other data sets. This fifth data set will contain more granular data of each candidate and will be the data set primarily referenced during analysis.
 
 ### Explanation of Preprocessing
 
@@ -260,3 +260,16 @@ To-do
 - [ ] Output data to file
 - [ ] Analyze data and draw conclusions
   - [ ] How should I handle missing data?
+
+## References
+
+Meisner, G. B., & Araujo, R. (2018). The Golden Ratio: The Divine Beauty of Mathematics (Illustrated ed.).Race Point Publishing.
+
+Meisner, G. (2020, September 28). Meisner Beauty Guide for Golden Ratio Facial Analysis. The Golden Ratio: Phi, 1.618.
+  https://www.goldennumber.net/meisner-beauty-guide-golden-ratio-facial-analysis/
+
+Rajendra, P. P. (2017). FaceShape [Python program to determine the face shape of an individual from a given photo].
+  https://github.com/rajendra7406-zz/FaceShape
+
+Serengil, S. (2020, October 1). Face Alignment for Face Recognition in Python within OpenCV. Sefik Ilkin Serengil.
+  https://sefiks.com/2020/02/23/face-alignment-for-face-recognition-in-python-within-opencv/
