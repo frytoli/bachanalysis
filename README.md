@@ -209,15 +209,17 @@ Create a fifth data by applying transformation methods to data from the other da
 
 ### Explanation of Preprocessing
 
-![](media/brian_bowles/original.jpeg) ![](media/brian_bowles/rotated.jpeg) ![](media/brian_bowles/cropped.jpeg)
-
-![](media/amanda_goerlitz/original.jpeg) ![](media/amanda_goerlitz/rotated.jpeg) ![](media/amanda_goerlitz/cropped.jpeg)
+| Original | Straightened | Cropped |
+| --- | --- | --- |
+| ![](media/brian_bowles/original.jpeg) | ![](media/brian_bowles/rotated.jpeg) | ![](media/brian_bowles/cropped.jpeg) |
+| ![](media/amanda_goerlitz/original.jpeg) | ![](media/amanda_goerlitz/rotated.jpeg) | ![](media/amanda_goerlitz/cropped.jpeg) |
 
 ### Explanation of the Beauty Algorithms
 
-![](media/brian_bowles/thirds.jpeg) ![](media/brian_bowles/fifths.jpeg) ![](media/brian_bowles/golden.jpeg)
-
-![](media/amanda_goerlitz/thirds.jpeg) ![](media/amanda_goerlitz/fifths.jpeg) ![](media/amanda_goerlitz/golden.jpeg)
+| Rule of Thirds | Rule of Fifths | Golden Ratio |
+| --- | --- | --- |
+| ![](media/brian_bowles/thirds.jpeg) | ![](media/brian_bowles/fifths.jpeg) | ![](media/brian_bowles/golden.jpeg) |
+| ![](media/amanda_goerlitz/thirds.jpeg) | ![](media/amanda_goerlitz/fifths.jpeg) | ![](media/amanda_goerlitz/golden.jpeg) |
 
 ### How to Run
 
