@@ -57,7 +57,7 @@ def scrape_season(show, season):
                         values = re.split(r'<br\/{0,1}>', str(caption))
                         if len(values) == 5:
                             # Compile html tag removal regex pattern
-                            tag_pattern = re.compile(r'</[a-z]{1,5}>')
+                            tag_pattern = re.compile(r'</{0,1}[a-z]{1,5}>')
                             contestants.append({
                                 keys[0]: tag_pattern.sub('', name.text),
                                 keys[1]: int(tag_pattern.sub('', values[1].strip())),
