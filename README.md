@@ -59,6 +59,8 @@ get_sql_table_values(ds): Take-in an integer data set number and output a list o
 [['name', 'text'], ['photo', 'text'], ['born', 'text'], ['hometown', 'text'], ['occupation', 'text'], ['seasons', 'text'], ['social_media', 'text'], ['height', 'text']]
 ```
 
+set_place(data): Take-in a list of raw scraped json objects, each associated with a contestant, from data source 2 and evaluate each contestant's place.
+
 model_one(ds, data): Take-in an integer data set number and a single raw json (dict) object and return a single json (dict) object modeled for the specified data set
 
 model_many(ds, datas): Take-in an integer data set number and a list of raw json (dict) objects and return a list of json (dict) objects all modeled for the specific data set
@@ -69,17 +71,17 @@ Data is stored in a SQL database and is accessed via the sqlite3 package.
 
 #### Methods
 
-create_table(table, values, drop_existing=False):
+create_table(table, values, drop_existing=False): Create a given table with a nested list of given values like (('name', 'text')) and drop any existing tables with the same name, if specified.
 
-insert_doc(table, data):
+insert_doc(table, data): Insert one document (data) into the given table.
 
-insert_docs(table, datas):
+insert_docs(table, datas): Insert multiple documents (datas) into the given table.
 
-update_doc(table, to_set, where):
+update_docs(table, to_set, where): Set documents where the given filters are met (structured like {'key':'name','operator':'==','comparison':'Blake Moynes'}) to the values specified in to_set (structured like [{'key':'age','operator':'==','comparison':29}])
 
-get_docs(table, column='*', filters=[]):
+get_docs(table, column='*', filters=[]): Retrieve documents from a given column where the given filters are met (structured like {'key':'name','operator':'==','comparison':'Blake Moynes'})
 
-get_max_val(table, column, filters=[]):
+get_max_val(table, column, filters=[]): Get the maximum value of a column where the given filters are met (structured like {'key':'name','operator':'==','comparison':'Blake Moynes'})
 
 ## Collection
 
@@ -226,11 +228,12 @@ To-do
   - [x] Preprocess
 - [x] Dockerize
 - [ ] Collect all the datas!
-- [ ] "Transform" the data into a fifth data set
+- [x] "Transform" the data into a fifth data set
   - [x] Pre-process contestant photos (face images and dlib landmarks)
   - [x] Rule of thirds evaluation
   - [x] Rule of fifths evaluation
   - [x] Golden ratio evaluation
+- [x] Evaluate "places" of all contestants from their elimination weeks and update data in ds2 (because this data is specific to the contestants in each season of The Bachelor/Bachelorette only)
 
 ### Model and Store Data
 
