@@ -7,6 +7,7 @@
 import json
 import math
 import uuid
+import re
 
 class bachdata():
     def __init__(self):
@@ -101,8 +102,40 @@ class bachdata():
                 sql_values.append([key, 'real'])
         return sql_values
 
+    # Evaluate and set the place of each contestant in a season
+    def set_place(self, data):
+        # Split data into shows/seasons
+        seasons_data = {}
+        for item in data:
+            key = f'''{item['show']}{item['season']}'''
+            if key not in seasons_data:
+                seasons_data[key] = [item]
+            else:
+                seasons_data[key].append(item)
+        # Iterate over seasons, evaluate places, and compile a list
+        places = []
+        for show_season, season_data in seasons_data.items():
+            # Get the elimination weeks
+            eliminated = [row['eliminated'] for row in season_data if row['eliminated'] not in ['winner', 'runnerup']]
+            # Order the list in reverse order
+            eliminated = sorted(eliminated, reverse=True)
+            # Insert winner and runner-up at indices 0 and 1 respectively
+            eliminated.insert(0, 'winner')
+            eliminated.insert(1, 'runnerup')
+            # Update season_data
+            for contestant in season_data:
+                try:
+                    # Place of contestant is the index of the contestant's elimination week in "eliminated" + 1
+                    place = eliminated.index(contestant['eliminated'])+1
+                    contestant['place'] = int(place)
+                except ValueError:
+                    contestant['place'] = -1
+                places.append(contestant)
+        return places
+
     # Model provided json (dict) data
     def model_one(self, ds, data):
+        elimination_week_pattern = re.compile(r'winner|runner-{0,1}up|week [1-9][0-9]{0,1}|episode [1-9][0-9]{0,1}')
         modeled_data = {}
         # Ensure the data is json
         if type(data) == dict:
@@ -146,7 +179,12 @@ class bachdata():
                              modeled_data[key] = ''
                          else:
                             try:
-                                modeled_data[key] = type(value)(data[key].lower().replace('eliminated in ',''))
+                                elimination_str = elimination_week_pattern.findall(data[key].lower())
+                                if len(elimination_str) > 0:
+                                    # Save last instance of regex pattern match
+                                    modeled_data[key] = elimination_str[-1].replace('episode','week').replace('-','')
+                                else:
+                                    modeled_data[key] = ''
                             except ValueError:
                                 modeled_data[key] = ''
                                 print(f'Value {data[key]} was not able to be cast to string')
@@ -191,6 +229,9 @@ class bachdata():
                 # Only save objects that are not empty
                 if modeled_data != {}:
                     modeled_datas.append(modeled_data)
+            # Set places of contestants in data set 2
+            if ds == 2:
+                modeled_datas = self.set_place(modeled_datas)
             return modeled_datas
         else:
             print('Mayday! Only a list of json objects are permitted')
