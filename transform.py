@@ -321,7 +321,7 @@ def main():
 					contestants += contestant
 		# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
 		ds5_resp = pool.starmap_async(process_face, contestants)
-		df5 = pd.DataFrame(list(ds5_resp.get()))
+		df5 = pd.DataFrame([resp for resp in list(ds5_resp.get()) if len(resp)>0])
 		# Save data set 5
 		bachdata.save_df(df5, 5)
 
