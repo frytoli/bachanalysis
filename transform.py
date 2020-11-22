@@ -12,6 +12,7 @@ Create a new dataset by
 
 from multiprocessing import Pool
 from algorithms import *
+import pandas as pd
 import numpy as np
 import argparse
 import base64
@@ -20,7 +21,6 @@ import dlib
 import math
 import json
 import cv2
-import db
 import os
 
 # Global var for path to volume within container
@@ -157,8 +157,6 @@ def get_face_rotation(img):
 Crop a contestant's photo to just their face
 '''
 def process_face(id, name, b64photo):
-	# Initialize sqldb object
-	bachdb = db.bachdb(PATH_TO_DB)
 	# Initialize data model handler object
 	bachdata = data.bachdata()
 
@@ -253,56 +251,28 @@ def process_face(id, name, b64photo):
 	else:
 		record = {}
 	if len(record) > 0:
-		modeled_record = bachdata.model_one(5, record)
-		# Add the modeled data to ds5 table
-		bachdb.insert_doc('ds5', modeled_record)
-	# Explicity remove record from memory
-	del record
+		# Model the record
+		record = bachdata.model_one(5, record)
+	# Return the record
+	return record
 
-def eval_rule_of_thirds(id):
-	# Initialize sqldb object
-	bachdb = db.bachdb(PATH_TO_DB)
-	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
-	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'id', 'operator':'==', 'comparison':id}])
-	if len(contestants) > 0:
-		for contestant in contestants:
-			results = rule_of_thirds.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
-			# Compile list of dict results to update in document
-			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
-			# Update record in database
-			bachdb.update_doc('ds5', to_set, {'key':'id','operator':'==','comparison':id})
-	# Clean memory
-	del contestants
+def eval_rule_of_thirds(id, name, face, dlib_landmarks):
+	# Evaluate rule of thirds
+	results = rule_of_thirds.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
+	# Return
+	return id, results
 
-def eval_rule_of_fifths(id):
-	# Initialize sqldb object
-	bachdb = db.bachdb(PATH_TO_DB)
-	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
-	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'id', 'operator':'==', 'comparison':id}])
-	if len(contestants) > 0:
-		for contestant in contestants:
-			results = rule_of_fifths.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
-			# Compile list of dict results to update in document
-			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
-			# Update record in database
-			bachdb.update_doc('ds5', to_set, {'key':'id','operator':'==','comparison':id})
-	# Clean memory
-	del contestants
+def eval_rule_of_fifths(id, name, face, dlib_landmarks):
+	# Evaluate rule of thirds
+	results = rule_of_fifths.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
+	# Return
+	return id, results
 
-def eval_golden_ratio(id):
-	# Initialize sqldb object
-	bachdb = db.bachdb(PATH_TO_DB)
-	# Retrieve contestants' names (id), cropped face photos, and dlib landmarks
-	contestants = bachdb.get_docs('ds5', column='name, face_photo, dlib_landmarks', filters=[{'key':'id', 'operator':'==', 'comparison':id}])
-	if len(contestants) > 0:
-		for contestant in contestants:
-			results = golden_ratio.evaluate(b64_to_img(contestant[1]), np.array(json.loads(contestant[2])))
-			# Compile list of dict results to update in document
-			to_set = [{'key':key, 'operator':'=', 'comparison':value} for key, value in results.items()]
-			# Update record in database
-			bachdb.update_doc('ds5', to_set, {'key':'id','operator':'==','comparison':id})
-	# Clean memory
-	del contestants
+def eval_golden_ratio(id, name, face, dlib_landmarks):
+	# Evaluate rule of thirds
+	results = rule_of_fifths.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
+	# Return
+	return id, results
 
 def main():
 	# Retrieve args
@@ -317,10 +287,11 @@ def main():
 	# Initialize multiprocessing pool with 5 threads
 	pool = Pool(processes=5)
 
-	# Initialize sqldb object
-	bachdb = db.bachdb(PATH_TO_DB)
 	# Initialize data model handler object
 	bachdata = data.bachdata()
+
+	# Initialize dataframe variable
+	df5 = None
 
 	# Evaluate flags
 	if (args.preprocess and args.evaluate) or (not args.preprocess and not args.evaluate):
@@ -335,14 +306,13 @@ def main():
 
 	# If the user wants to preprocess the data
 	if preprocess:
-		# Drop and create new data source tables, if applicable
-		if not args.nowrite:
-			bachdb.create_table('ds5', bachdata.get_sql_table_values(5), drop_existing=True)
-
 		# If no contestants are given by the user, process every contestant from data set 3 in the database
 		if len(args.contestant) == 0:
-			# Retrieve contestants' names (id) and photos
-			contestants = bachdb.get_docs('ds3', column='id, name, photo')
+			# Read-in ds3 as dataframe
+			df3 = bachdata.retrieve_df(3)
+			if not df3.empty:
+				# Retrieve list of contestants
+				contestants = df3[['id', 'name', 'photo']].values.tolist()
 			if len(contestants) == 0:
 				print(f'Mayday! Unable to compile data set 5. Has data set 3 been collected and stored?')
 		else:
@@ -350,69 +320,72 @@ def main():
 			for contestant in args.contestant:
 				names = contestant.lower().split('_')
 				name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-				contestant = bachdb.get_docs('ds3', column='id, name, photo', filters=[{'key':'name', 'operator':'==', 'comparison':name}])
+				# Get contestant's id, name, and photo
+				contestant = df3.loc[df3['name']==name][['id', 'name', 'photo']].values.tolist()
 				if len(contestant) > 0:
 					contestants += contestant
 		# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
-		pool_resp = pool.starmap_async(process_face, contestants)
-		pool_resp.get()
+		ds5_resp = pool.starmap_async(process_face, contestants)
+		df5 = pd.DataFrame(list(ds5_resp.get()))
+		# Save data set 5
+		bachdata.save_df(df5, 5)
 
 	# Perform algorithms if specified
 	if evaluate:
-		# Rule of thirds
-		if 'thirds' in args.algorithm:
+		# If data set 5 hasn't been read-in to a data frame, attempt to read data set 5 from pickled file
+		if not isinstance(df5, pd.DataFrame):
+			df5 = bachdata.retrieve_df(5)
+		if not df5.empty:
 			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
 			if len(args.contestant) == 0:
-				# Retrieve contestants' names (id)
-				contestants = bachdb.get_docs('ds5', column='id')
+				# Retrieve contestants' ids, name, face, and dlib landmarks
+				contestants = df5[['id', 'name', 'face_photo', 'dlib_landmarks']].values.tolist()
 				if len(contestants) == 0:
 					print(f'Mayday! Unable to evaluate rule of thirds. Has data set 5 been collected, preprocessed, and stored?')
-				else:
-					for contestant in contestants:
-						eval_rule_of_thirds(contestant[0])
 			else:
 				for contestant in args.contestant:
 					names = contestant.lower().split('_')
 					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-					# Get contestant's document id
-					contestant = bachdb.get_docs('ds5', column='id', filters=[{'key':'name', 'operator':'==', 'comparison':name}])[0][0]
-					eval_rule_of_thirds(contestant)
+					# Get contestant's id, name, face, and dlib landmarks
+					contestant = df5.loc[df5['name']==name][['id', 'name', 'face_photo', 'dlib_landmarks']].values.tolist()
+
+		# Rule of thirds
+		if 'thirds' in args.algorithm:
+				# Multiprocess
+				ds5_resp = pool.starmap_async(eval_rule_of_thirds, contestants)
+				# Update data set 5 data frame
+				for resp in ds5_resp.get():
+					id = resp[0]
+					rec = resp[1]
+					for key, value in rec.items():
+						df5.loc[df5['id'] == id, [key]] = value
+				# Save data set 5
+				bachdata.save_df(df5, 5)
 		# Rule of fifths
 		if 'fifths' in args.algorithm:
-			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
-			if len(args.contestant) == 0:
-				# Retrieve contestants' names (id)
-				contestants = bachdb.get_docs('ds5', column='id')
-				if len(contestants) == 0:
-					print(f'Mayday! Unable to evaluate rule of fifths. Has data set 5 been collected, preprocessed, and stored?')
-				else:
-					for contestant in contestants:
-						eval_rule_of_fifths(contestant[0])
-			else:
-				for contestant in args.contestant:
-					names = contestant.lower().split('_')
-					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-					# Get contestant's document id
-					contestant = bachdb.get_docs('ds5', column='id', filters=[{'key':'name', 'operator':'==', 'comparison':name}])[0][0]
-					eval_rule_of_fifths(contestant)
+				# Multiprocess
+				ds5_resp = pool.starmap_async(eval_rule_of_fifths, contestants)
+				# Update data set 5 data frame
+				for resp in ds5_resp.get():
+					id = resp[0]
+					rec = resp[1]
+					for key, value in rec.items():
+						df5.loc[df5['id'] == id, [key]] = value
+				# Save data set 5
+				bachdata.save_df(df5, 5)
 		# Golden ratio
 		if 'golden' in args.algorithm:
-			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
-			if len(args.contestant) == 0:
-				# Retrieve contestants' names (id)
-				contestants = bachdb.get_docs('ds5', column='id')
-				if len(contestants) == 0:
-					print(f'Mayday! Unable to evaluate golden ratio. Has data set 5 been collected, preprocessed, and stored?')
-				else:
-					for contestant in contestants:
-						eval_golden_ratio(contestant[0])
-			else:
-				for contestant in args.contestant:
-					names = contestant.lower().split('_')
-					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-					# Get contestant's document id
-					contestant = bachdb.get_docs('ds5', column='id', filters=[{'key':'name', 'operator':'==', 'comparison':name}])[0][0]
-					eval_golden_ratio(contestant)
+				# Multiprocess
+				ds5_resp = pool.starmap_async(eval_golden_ratio, contestants)
+				# Update data set 5 data frame
+				for resp in ds5_resp.get():
+					id = resp[0]
+					rec = resp[1]
+					for key, value in rec.items():
+						df5.loc[df5['id'] == id, [key]] = value
+				# Save data set 5
+				print(df5)
+				bachdata.save_df(df5, 5)
 
 if __name__ == '__main__':
 	main()

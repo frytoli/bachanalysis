@@ -4,10 +4,12 @@
 * Convert raw input json data into modeled json data
 '''
 
+import pandas as pd
 import json
 import math
 import uuid
 import re
+import os
 
 class bachdata():
     def __init__(self):
@@ -89,18 +91,24 @@ class bachdata():
                 'h7_ratio': 0.0 # 0.0 for null
             }
         }
+        # Global var for path to volume within container
+        self.PATH_TO_VOLUME = os.path.join(os.getcwd(), 'local')
 
-    # Return a list of lists containing a data set's key names and associated python value types
-    def get_sql_table_values(self, ds):
-        sql_values = []
-        for key, value in self.models[ds].items():
-            if type(value) == str:
-                sql_values.append([key, 'text'])
-            elif type(value) == int:
-                sql_values.append([key, 'integer'])
-            elif type(value) == float:
-                sql_values.append([key, 'real'])
-        return sql_values
+    def save_df(self, df, ds):
+        try:
+            df.to_pickle(os.path.join(self.PATH_TO_VOLUME, f'ds{ds}.pkl'))
+            return True
+        except Exception as e:
+            print(f'Mayday! {e}')
+            return False
+
+    def retrieve_df(self, ds):
+        try:
+            df = pd.read_pickle(os.path.join(self.PATH_TO_VOLUME, f'ds{ds}.pkl'))
+            return df
+        except Exception as e:
+            print(f'Mayday! {e}')
+            return None
 
     # Evaluate and set the place of each contestant in a season
     def set_place(self, data):
