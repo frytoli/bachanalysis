@@ -18,7 +18,7 @@ Collect all data sets from remote sources:
 docker run --volume $(pwd):/home/ bach collect.py
 ```
 
-Collect all data sets from local sources (note that all local raw files must exist in the local/ directory and be named rawN.json, where N is the integer data set such as raw1.json for data set 1):
+Collect all data sets from local sources (note that all local raw files must exist in the local/ directory and be named rawN.json where N is the integer data set, such as raw1.json for data set 1):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --source local
 ```
@@ -38,13 +38,22 @@ docker run --volume $(pwd):/home/ bach transform.py
    2. Data about The Bachelorette seasons
 3. Data about The Bachelor and The Bachelorette contestants
 4. Instagram data from contestants
-5. Granular contestant data compiled from "transformed" data from the other data sets, including measured physical features and quantified "overall attractiveness" from known algorithms
+5. Granular contestant data compiled from "transformed" data from the other data sets, including measured physical features and quantified "overall attractiveness" from known algorithms: rule of thirds, rule of fifths, and the golden ratio.
 
 ## Data Models and Data Storage
 
-Data is stored in a SQL database. The structure of this database, as defined by the data model, is as follows:
+Data is stored in pickled pandas data frames saved in the ./local/ directory. The structure of these data frames, as defined by the data model, is as follows:
 
-![](media/bachdb.png)
+```
+>> df1.columns
+["season", "original_run", "suitor", "winner", "runnersup", "proposal", "show", "still_together", "relationship_notes"]
+>> df2.columns
+["id", "name", "age", "hometown", "occupation", "eliminated", "season", "show", "profile_url", "place"]
+>> df3.columns
+["id", "name", "photo", "profile_url", "born", "hometown", "occupation", "seasons", "social_media", "height"]
+>> df5.columns
+["id", "name", "dlib_landmarks", "face_photo", "face_height", "face_width", "theoretical_thirds", "experimental_thirds1", "experimental_thirds2", "experimental_thirds3", "theoretical_fifths", "experimental_fifths1", "experimental_fifths2", "experimental_fifths3", "experimental_fifths4", "experimental_fifths5", "hw_ratio", "v1_ratio", "v2_ratio", "v3_ratio", "v4_ratio", "v5_ratio", "v6_ratio", "v7_ratio", "h1_ratio", "h2_ratio", "h3_ratio", "h4_ratio", "h5_ratio", "h6_ratio", "h7_ratio"]
+```
 
 ### Data Class
 
@@ -52,36 +61,15 @@ The data is modeled as above in JSON format.
 
 #### Methods
 
-get_sql_table_values(ds): Take-in an integer data set number and output a list of lists of associated database table values and their SQL types.
-```
->>> d = data.bachdata()
->>> d.get_sql_table_values(5)
-[['name', 'text'], ['photo', 'text'], ['born', 'text'], ['hometown', 'text'], ['occupation', 'text'], ['seasons', 'text'], ['social_media', 'text'], ['height', 'text']]
-```
+save_df(df, ds): Pickle and save the given data frame as a data set.
+
+retrieve_df(ds): Retrieve a given data set as a data frame.
 
 set_place(data): Take-in a list of raw scraped json objects, each associated with a contestant, from data source 2 and evaluate each contestant's place.
 
 model_one(ds, data): Take-in an integer data set number and a single raw json (dict) object and return a single json (dict) object modeled for the specified data set
 
 model_many(ds, datas): Take-in an integer data set number and a list of raw json (dict) objects and return a list of json (dict) objects all modeled for the specific data set
-
-### DB Class
-
-Data is stored in a SQL database and is accessed via the sqlite3 package.
-
-#### Methods
-
-create_table(table, values, drop_existing=False): Create a given table with a nested list of given values like (('name', 'text')) and drop any existing tables with the same name, if specified.
-
-insert_doc(table, data): Insert one document (data) into the given table.
-
-insert_docs(table, datas): Insert multiple documents (datas) into the given table.
-
-update_docs(table, to_set, where): Set documents where the given filters are met (structured like {'key':'name','operator':'==','comparison':'Blake Moynes'}) to the values specified in to_set (structured like [{'key':'age','operator':'==','comparison':29}])
-
-get_docs(table, column='*', filters=[]): Retrieve documents from a given column where the given filters are met (structured like {'key':'name','operator':'==','comparison':'Blake Moynes'})
-
-get_max_val(table, column, filters=[]): Get the maximum value of a column where the given filters are met (structured like {'key':'name','operator':'==','comparison':'Blake Moynes'})
 
 ## Collection
 
@@ -251,12 +239,11 @@ To-do
     - [ ] Data set 4 (Instagram)
     - [x] Data set 5 (Evaluated)
     - [ ] Write data set data from database to an output file
-- [x] Data storage (SQL database)
-  - [x] DB class that interacts with SQL database
-    - [x] Create tables with input list of column tuples
-    - [x] Take in pre-modeled json data (formatted by data class) and input it into given data source table
-    - [x] Retrieve data from database (account for columns and filters)
-    - [x] Retrieve max of data in column from database (account for filters)
+- [x] Data storage (scratch SQL database, we're using pickled pandas dfs)
+  - [x] Save data frame per data set
+    - [x] Create dfs with model keys
+    - [x] Put pre-modeled json data (formatted by data class) into df
+    - [x] Pickle and save dfs
 
 ### Analysis and Conclusions
 
