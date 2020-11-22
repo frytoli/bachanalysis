@@ -108,7 +108,8 @@ class bachdata():
             return df
         except Exception as e:
             print(f'Mayday! {e}')
-            return None
+            # Return an empty dataframe
+            return pd.DataFrame({'A' : []})
 
     # Evaluate and set the place of each contestant in a season
     def set_place(self, data):
