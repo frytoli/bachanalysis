@@ -42,7 +42,7 @@ docker run --volume $(pwd):/home/ bach transform.py
 
 ## Data Models and Data Storage
 
-Data is stored in pickled pandas data frames saved in the ./local/ directory. The structure of these data frames, as defined by the data model, is as follows:
+Data is stored in pickled pandas dataframes saved in the ./local/ directory. The structure of these dataframes, as defined by the data model, is as follows:
 
 ```
 >> df1.columns
@@ -61,9 +61,9 @@ The data is modeled as above in JSON format.
 
 #### Methods
 
-save_df(df, ds): Pickle and save the given data frame as a data set.
+save_df(df, ds): Pickle and save the given dataframe as a data set.
 
-retrieve_df(ds): Retrieve a given data set as a data frame.
+retrieve_df(ds): Retrieve a given data set as a dataframe.
 
 set_place(data): Take-in a list of raw scraped json objects, each associated with a contestant, from data source 2 and evaluate each contestant's place.
 
@@ -240,7 +240,7 @@ To-do
     - [x] Data set 5 (Evaluated)
     - [ ] Write data set data from database to an output file
 - [x] Data storage (scratch SQL database, we're using pickled pandas dfs)
-  - [x] Save data frame per data set
+  - [x] Save dataframe per data set
     - [x] Create dfs with model keys
     - [x] Put pre-modeled json data (formatted by data class) into df
     - [x] Pickle and save dfs

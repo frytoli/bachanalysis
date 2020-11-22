@@ -136,7 +136,7 @@ def main():
         df1, df2, df3 = pool_resp.get()
         # Set all ds3 record ids to match ds2
         df3 = set_ds3_ids(df2, df3)
-        # Save all data set data frames
+        # Save all data set dataframes
         bachdata.save_df(df1, 1)
         bachdata.save_df(df2, 2)
         bachdata.save_df(df3, 3)
@@ -156,7 +156,7 @@ def main():
                 bachdata.save_df(df1, 1)
             # Data sets 2.1 and 2.2
             elif ds == 2:
-                # If data set 1 hasn't been read-in to a data frame, attempt to read data set 1 from pickled file
+                # If data set 1 hasn't been read-in to a dataframe, attempt to read data set 1 from pickled file
                 if not isinstance(df1, pd.DataFrame):
                     df1 = bachdata.retrieve_df(1)
                 if not df1.empty:
@@ -183,7 +183,7 @@ def main():
                     bachdata.save_df(df2, 2)
             # Data set 3
             elif ds == 3:
-                # If data set 2 hasn't been read-in to a data frame, attempt to read data set 2 from pickled file
+                # If data set 2 hasn't been read-in to a dataframe, attempt to read data set 2 from pickled file
                 if not isinstance(df2, pd.DataFrame):
                     df2 = bachdata.retrieve_df(2)
                 if not df2.empty:

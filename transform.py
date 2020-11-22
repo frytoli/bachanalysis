@@ -23,11 +23,6 @@ import json
 import cv2
 import os
 
-# Global var for path to volume within container
-PATH_TO_VOLUME = os.path.join(os.getcwd(), 'local')
-# Global var for path to database
-PATH_TO_DB = os.path.join(PATH_TO_VOLUME, 'thebach.db')
-
 '''
 Helper functions
 '''
@@ -332,7 +327,7 @@ def main():
 
 	# Perform algorithms if specified
 	if evaluate:
-		# If data set 5 hasn't been read-in to a data frame, attempt to read data set 5 from pickled file
+		# If data set 5 hasn't been read-in to a dataframe, attempt to read data set 5 from pickled file
 		if not isinstance(df5, pd.DataFrame):
 			df5 = bachdata.retrieve_df(5)
 		if not df5.empty:
@@ -353,7 +348,7 @@ def main():
 		if 'thirds' in args.algorithm:
 				# Multiprocess
 				ds5_resp = pool.starmap_async(eval_rule_of_thirds, contestants)
-				# Update data set 5 data frame
+				# Update data set 5 dataframe
 				for resp in ds5_resp.get():
 					id = resp[0]
 					rec = resp[1]
@@ -365,7 +360,7 @@ def main():
 		if 'fifths' in args.algorithm:
 				# Multiprocess
 				ds5_resp = pool.starmap_async(eval_rule_of_fifths, contestants)
-				# Update data set 5 data frame
+				# Update data set 5 dataframe
 				for resp in ds5_resp.get():
 					id = resp[0]
 					rec = resp[1]
@@ -377,14 +372,13 @@ def main():
 		if 'golden' in args.algorithm:
 				# Multiprocess
 				ds5_resp = pool.starmap_async(eval_golden_ratio, contestants)
-				# Update data set 5 data frame
+				# Update data set 5 dataframe
 				for resp in ds5_resp.get():
 					id = resp[0]
 					rec = resp[1]
 					for key, value in rec.items():
 						df5.loc[df5['id'] == id, [key]] = value
 				# Save data set 5
-				print(df5)
 				bachdata.save_df(df5, 5)
 
 if __name__ == '__main__':
