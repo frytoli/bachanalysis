@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import ConfigParser
+import configparser
 import datetime
 import requests
 import base64
@@ -9,7 +9,7 @@ import ssl
 class api():
     def __init__(self, configfile):
         # Retrieve Instagram username/password from file
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configfile)
         username = config.get('Instagram', 'username')
         password = config.get('Instagram', 'password')
