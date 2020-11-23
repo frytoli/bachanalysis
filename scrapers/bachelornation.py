@@ -134,9 +134,10 @@ def scrape_contestant(contestant):
         for pair in infos:
             key = pair.find('h3').text.strip()
             value = pair.find('div')
-            # If key is social_media, retrieve and save all social media links
+            # If key is social_media, retrieve and save all social media links as list
             if key.lower() == 'social media':
-                value = f'''{', '.join([a['href'] for a in value.findAll('a')])}'''
+                value = [a['href'] for a in value.findAll('a')]
+                #value = f'''{', '.join([a['href'] for a in value.findAll('a')])}'''
             # Otherwise, save the text
             else:
                 value = value.text

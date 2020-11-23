@@ -16,79 +16,82 @@ class bachdata():
         # Data model references for all data sets
         self.models = {
             1: {
-                'season': 0, # -1 for null
-                'original_run': '', # '' for null
-                'suitor': '', # '' for null
-                'winner': '', # '' for null
-                'runnersup': '', # '' for null
-                'proposal': 0, # 0 for no, 1 for yes, -1 for null
-                'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
-                'still_together': 0, # 0 for no, 1 for yes, -1 for null
-                'relationship_notes':'' # '' for null
+                'season': -1,
+                'original_run': '',
+                'suitor': '',
+                'winner': '',
+                'runnersup': '',
+                'proposal': -1, # 0 for no, 1 for yes
+                'show': -1, # 0 for Bachelor, 1 for Bachelorette
+                'still_together': -1, # 0 for no, 1 for yes
+                'relationship_notes':''
             },
             2: {
                 'id': '',
-                'name': '', # '' for null
-                'age': 0, # -1 for null
-                'hometown': '', # '' for null
-                'occupation': '', # '' for null
-                'eliminated': '', # '' for null
-                'season': 0, # -1 for null
-                'show': 0, # 0 for Bachelor, 1 for Bachelorette, -1 for null
+                'name': '',
+                'age': -1,
+                'hometown': '',
+                'occupation': '',
+                'eliminated': '',
+                'season': -1,
+                'show': -1, # 0 for Bachelor, 1 for Bachelorette
                 'profile_url': '',
-                'place': 0 # -1 for null
+                'place': -1
             },
             3: {
                 'id': '',
-                'name': '', # '' for null
-                'photo': '', # '' for null
-                'profile_url': '', # '' for null
-                'born': '', # '' for null
-                'hometown': '', # '' for null
-                'occupation': '', # '' for null
-                'seasons': '', # '' for null
-                'social_media': '', # '' for null
-                'height': '' # '' for null
+                'name': '',
+                'photo': '',
+                'profile_url': '',
+                'born': '',
+                'hometown': '',
+                'occupation': '',
+                'seasons': '',
+                'social_media': [],
+                'height': ''
             },
             4: {
                 'id': '',
-                'name': '', # '' for null
-                'handle': '',  # '' for null
-                'followers': 0, # -1 for null
-                'following': 0 # -1 for null
+                'name': '',
+                'handle': '',
+                'followers': -1,
+                'following': -1,
+                'photo1': '',
+                'photo2': '',
+                'photo3': ''
             },
             5: {
                 'id': '',
-                'name': '', # '' for null
-                'dlib_landmarks': '', # '' for null
-                'face_photo': '', # '' for null
-                'face_height': 0, # 0 for null
-                'face_width': 0, # 0 for null
-                'theoretical_thirds': 0.0, # 0.0 for null
-                'experimental_thirds1': 0.0, # 0.0 for null
-                'experimental_thirds2': 0.0, # 0.0 for null
-                'experimental_thirds3': 0.0, # 0.0 for null
-                'theoretical_fifths': 0.0, # 0.0 for null
-                'experimental_fifths1': 0.0, # 0.0 for null
-                'experimental_fifths2': 0.0, # 0.0 for null
-                'experimental_fifths3': 0.0, # 0.0 for null
-                'experimental_fifths4': 0.0, # 0.0 for null
-                'experimental_fifths5': 0.0, # 0.0 for null
-                'hw_ratio': 0.0, # 0.0 for null
-                'v1_ratio': 0.0, # 0.0 for null
-                'v2_ratio': 0.0, # 0.0 for null
-                'v3_ratio': 0.0, # 0.0 for null
-                'v4_ratio': 0.0, # 0.0 for null
-                'v5_ratio': 0.0, # 0.0 for null
-                'v6_ratio': 0.0, # 0.0 for null
-                'v7_ratio': 0.0, # 0.0 for null
-                'h1_ratio': 0.0, # 0.0 for null
-                'h2_ratio': 0.0, # 0.0 for null
-                'h3_ratio': 0.0, # 0.0 for null
-                'h4_ratio': 0.0, # 0.0 for null
-                'h5_ratio': 0.0, # 0.0 for null
-                'h6_ratio': 0.0, # 0.0 for null
-                'h7_ratio': 0.0 # 0.0 for null
+                'name': '',
+                'dlib_landmarks': [],
+                'face_photo': '',
+                'face_height': 0,
+                'face_width': 0,
+                'theoretical_thirds': 0.0,
+                'experimental_thirds1': 0.0,
+                'experimental_thirds2': 0.0,
+                'experimental_thirds3': 0.0,
+                'theoretical_fifths': 0.0,
+                'experimental_fifths1': 0.0,
+                'experimental_fifths2': 0.0,
+                'experimental_fifths3': 0.0,
+                'experimental_fifths4': 0.0,
+                'experimental_fifths5': 0.0,
+                'hw_ratio': 0.0,
+                'v1_ratio': 0.0,
+                'v2_ratio': 0.0,
+                'v3_ratio': 0.0,
+                'v4_ratio': 0.0,
+                'v5_ratio': 0.0,
+                'v6_ratio': 0.0,
+                'v7_ratio': 0.0,
+                'h1_ratio': 0.0,
+                'h2_ratio': 0.0,
+                'h3_ratio': 0.0,
+                'h4_ratio': 0.0,
+                'h5_ratio': 0.0,
+                'h6_ratio': 0.0,
+                'h7_ratio': 0.0
             }
         }
         # Global var for path to volume within container
