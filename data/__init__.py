@@ -52,13 +52,15 @@ class bachdata():
             },
             4: {
                 'id': '',
-                'name': '',
-                'handle': '',
                 'followers': -1,
                 'following': -1,
+                'name': '',
                 'photo1': '',
                 'photo2': '',
-                'photo3': ''
+                'photo3': '',
+                'url': '',
+                'username': ''
+                'timestamp': None
             },
             5: {
                 'id': '',

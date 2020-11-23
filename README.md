@@ -51,6 +51,8 @@ Data is stored in pickled pandas dataframes saved in the ./local/ directory. The
 ["id", "name", "age", "hometown", "occupation", "eliminated", "season", "show", "profile_url", "place"]
 >> df3.columns
 ["id", "name", "photo", "profile_url", "born", "hometown", "occupation", "seasons", "social_media", "height"]
+>> df4.columns
+["id", "name", "followers", "following", "photo1", "photo2", "photo3", "url", "username", "timestamp"]
 >> df5.columns
 ["id", "name", "dlib_landmarks", "face_photo", "face_height", "face_width", "theoretical_thirds", "experimental_thirds1", "experimental_thirds2", "experimental_thirds3", "theoretical_fifths", "experimental_fifths1", "experimental_fifths2", "experimental_fifths3", "experimental_fifths4", "experimental_fifths5", "hw_ratio", "v1_ratio", "v2_ratio", "v3_ratio", "v4_ratio", "v5_ratio", "v6_ratio", "v7_ratio", "h1_ratio", "h2_ratio", "h3_ratio", "h4_ratio", "h5_ratio", "h6_ratio", "h7_ratio"]
 ```
