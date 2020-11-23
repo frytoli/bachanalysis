@@ -121,7 +121,11 @@ def set_ds3_ids(df2, df3):
     profile_urls = list(df3['profile_url'])
     for url in profile_urls:
         # Find record in data set 2 that corresponds to the given profile url and get the corresponding id
-        id = df2.loc[df2['profile_url']==url]['id']
+        try:
+            id = df2.loc[df2['profile_url']==url]['id']
+        except KeyError:
+            print(f'Contestant with profile url {url} not found in data set 2. The record in data set 3 will be updated with a blank id value')
+            id = ''
         # Update the associated record in data set 3
         df3.loc[df3['profile_url'] == url, ['id']] = id
     return df3
