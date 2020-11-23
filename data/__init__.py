@@ -54,13 +54,28 @@ class bachdata():
                 'id': '',
                 'followers': -1,
                 'following': -1,
+                'is_private': -1, # 0 for false, 1 for true
                 'name': '',
                 'photo1': '',
+                'photo1_comments': -1,
+                'photo1_likes': -1,
+                'photo1_comments_disabled': -1, # 0 for false, 1 for true
+                'photo1_timestamp': '',
                 'photo2': '',
+                'photo2_comments': -1,
+                'photo2_likes': -1,
+                'photo2_comments_disabled': -1, # 0 for false, 1 for true
+                'photo2_timestamp': '',
                 'photo3': '',
+                'photo3_comments': -1,
+                'photo3_likes': -1,
+                'photo3_comments_disabled': -1, # 0 for false, 1 for true
+                'photo3_timestamp': '',
+                'post_count': -1,
+                'prof_photo': '',
                 'url': '',
+                'user_id': '',
                 'username': ''
-                'timestamp': None
             },
             5: {
                 'id': '',
@@ -202,6 +217,16 @@ class bachdata():
                             except ValueError:
                                 modeled_data[key] = ''
                                 print(f'Value {data[key]} was not able to be cast to string')
+                    elif key in ['is_private', 'photo1_comments_disabled', 'photo2_comments_disabled', 'photo3_comments_disabled']:
+                        if data[key] != None:
+                            if data[key]:
+                                modeled_data[key] = 1
+                            elif not data[key]:
+                                modeled_data[key] = 0
+                            else:
+                                modeled_data[key] = -1
+                        else:
+                            modeled_data[key] = -1
                     else:
                         if type(data[key]) == float and math.isnan(data[key]):
                             if type(value) == int:
