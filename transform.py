@@ -236,7 +236,7 @@ def process_face(id, name, b64photo):
 			record = {
 				'id': str(id),
 				'name': name,
-				'dlib_landmarks': json.dumps(landmarks), # Json dump nested list as a string
+				'dlib_landmarks': landmarks,
 				'face_photo': b64face,
 				'face_height': h,
 				'face_width': w
@@ -265,7 +265,7 @@ def eval_rule_of_fifths(id, name, face, dlib_landmarks):
 
 def eval_golden_ratio(id, name, face, dlib_landmarks):
 	# Evaluate rule of thirds
-	results = rule_of_fifths.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
+	results = golden_ratio.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
 	# Return
 	return id, results
 
@@ -343,43 +343,42 @@ def main():
 					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
 					# Get contestant's id, name, face, and dlib landmarks
 					contestant = df5.loc[df5['name']==name][['id', 'name', 'face_photo', 'dlib_landmarks']].values.tolist()
-
 		# Rule of thirds
 		if 'thirds' in args.algorithm:
-				# Multiprocess
-				ds5_resp = pool.starmap_async(eval_rule_of_thirds, contestants)
-				# Update data set 5 dataframe
-				for resp in ds5_resp.get():
-					id = resp[0]
-					rec = resp[1]
-					for key, value in rec.items():
-						df5.loc[df5['id'] == id, [key]] = value
-				# Save data set 5
-				bachdata.save_df(df5, 5)
+			# Multiprocess
+			ds5_resp = pool.starmap_async(eval_rule_of_thirds, contestants)
+			# Update data set 5 dataframe
+			for resp in ds5_resp.get():
+				id = resp[0]
+				rec = resp[1]
+				for key, value in rec.items():
+					df5.loc[df5['id'] == id, [key]] = value
+			# Save data set 5
+			bachdata.save_df(df5, 5)
 		# Rule of fifths
 		if 'fifths' in args.algorithm:
-				# Multiprocess
-				ds5_resp = pool.starmap_async(eval_rule_of_fifths, contestants)
-				# Update data set 5 dataframe
-				for resp in ds5_resp.get():
-					id = resp[0]
-					rec = resp[1]
-					for key, value in rec.items():
-						df5.loc[df5['id'] == id, [key]] = value
-				# Save data set 5
-				bachdata.save_df(df5, 5)
+			# Multiprocess
+			ds5_resp = pool.starmap_async(eval_rule_of_fifths, contestants)
+			# Update data set 5 dataframe
+			for resp in ds5_resp.get():
+				id = resp[0]
+				rec = resp[1]
+				for key, value in rec.items():
+					df5.loc[df5['id'] == id, [key]] = value
+			# Save data set 5
+			bachdata.save_df(df5, 5)
 		# Golden ratio
 		if 'golden' in args.algorithm:
-				# Multiprocess
-				ds5_resp = pool.starmap_async(eval_golden_ratio, contestants)
-				# Update data set 5 dataframe
-				for resp in ds5_resp.get():
-					id = resp[0]
-					rec = resp[1]
-					for key, value in rec.items():
-						df5.loc[df5['id'] == id, [key]] = value
-				# Save data set 5
-				bachdata.save_df(df5, 5)
+			# Multiprocess
+			ds5_resp = pool.starmap_async(eval_golden_ratio, contestants)
+			# Update data set 5 dataframe
+			for resp in ds5_resp.get():
+				id = resp[0]
+				rec = resp[1]
+				for key, value in rec.items():
+					df5.loc[df5['id'] == id, [key]] = value
+			# Save data set 5
+			bachdata.save_df(df5, 5)
 
 if __name__ == '__main__':
 	main()
