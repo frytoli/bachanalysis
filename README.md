@@ -134,7 +134,7 @@ Create a fifth data set by applying transformation methods to data from the othe
 | ![](media/brian_bowles/original.jpeg) | ![](media/brian_bowles/rotated.jpeg) | ![](media/brian_bowles/cropped.jpeg) |
 | ![](media/amanda_goerlitz/original.jpeg) | ![](media/amanda_goerlitz/rotated.jpeg) | ![](media/amanda_goerlitz/cropped.jpeg) |
 
-### Explanation of the Beauty Algorithms
+### Explanation of the Attractiveness Algorithms
 
 | Rule of Thirds | Rule of Fifths | Golden Ratio |
 | --- | --- | --- |
@@ -151,7 +151,6 @@ docker build collection/ --tag bach
 #### Arguments:
 
 * preprocess: Optional. Default: True. Pre-process the data for data set 5.
-* nowrite: Optional. Default: False. Do NOT overwrite any previously saved information from data set 5 in the database (do not dump and create a new table). Applicable with preprocess flag.
 * evaluate: Optional. Default: True. Evaluate data set 5 with all given algorithmm.
 * algorithm: Optional. Default: ['thirds', 'fifths', 'golden']. A string name of an algorithm to evaluate data set 5 with.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette.
@@ -168,12 +167,12 @@ Create data set 5 by transforming/preprocessing data from data set 3 and (if app
 docker run --volume $(pwd):/home/ bach transform.py --preprocess
 ```
 
-Transform/preprocess data from the other data sets for The Bachelorette contestant Jason Tartick and do NOT overwrite any old data from these data sets in the database:
+Transform/preprocess data from the other data sets for The Bachelorette contestant Jason Tartick (overwrite ds5.pkl):
 ```
-docker run --volume $(pwd):/home/ bach transform.py --preprocess --nowrite --contestant jason_tartick
+docker run --volume $(pwd):/home/ bach transform.py --preprocess --contestant jason_tartick
 ```
 
-Perform rule of thirds and golden ratio analysis on all pre-processed contestant records in data set 5:
+Perform rule of thirds and golden ratio analysis on all pre-processed contestant records in data set 5 (overwrite ds5.pkl):
 ```
 docker run --volume $(pwd):/home/ bach transform.py --evaluate --algorithm thirds golden
 ```
