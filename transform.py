@@ -253,19 +253,19 @@ def process_face(id, name, b64photo):
 
 def eval_rule_of_thirds(id, name, face, dlib_landmarks):
 	# Evaluate rule of thirds
-	results = rule_of_thirds.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
+	results = rule_of_thirds.evaluate(b64_to_img(face), np.array(dlib_landmarks))
 	# Return
 	return id, results
 
 def eval_rule_of_fifths(id, name, face, dlib_landmarks):
 	# Evaluate rule of thirds
-	results = rule_of_fifths.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
+	results = rule_of_fifths.evaluate(b64_to_img(face), np.array(dlib_landmarks))
 	# Return
 	return id, results
 
 def eval_golden_ratio(id, name, face, dlib_landmarks):
 	# Evaluate rule of thirds
-	results = golden_ratio.evaluate(b64_to_img(face), np.array(json.loads(dlib_landmarks)))
+	results = golden_ratio.evaluate(b64_to_img(face), np.array(dlib_landmarks))
 	# Return
 	return id, results
 
