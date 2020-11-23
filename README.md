@@ -52,7 +52,7 @@ Data is stored in pickled pandas dataframes saved in the ./local/ directory. The
 >> df3.columns
 ["id", "name", "photo", "profile_url", "born", "hometown", "occupation", "seasons", "social_media", "height"]
 >> df4.columns
-["id", "name", "followers", "following", "photo1", "photo2", "photo3", "url", "username", "timestamp"]
+["id", "followers", "following", "is_private", "name", "photo1", "photo1_comments", "photo1_likes", "photo1_comments_disabled", "photo1_timestamp", "photo2", "photo2_comments", "photo2_likes", "photo2_comments_disabled", "photo2_timestamp", "photo3", "photo3_comments", "photo3_likes", "photo3_comments_disabled", "photo3_timestamp", "post_count", "prof_photo", "url", "user_id", "username"]
 >> df5.columns
 ["id", "name", "dlib_landmarks", "face_photo", "face_height", "face_width", "theoretical_thirds", "experimental_thirds1", "experimental_thirds2", "experimental_thirds3", "theoretical_fifths", "experimental_fifths1", "experimental_fifths2", "experimental_fifths3", "experimental_fifths4", "experimental_fifths5", "hw_ratio", "v1_ratio", "v2_ratio", "v3_ratio", "v4_ratio", "v5_ratio", "v6_ratio", "v7_ratio", "h1_ratio", "h2_ratio", "h3_ratio", "h4_ratio", "h5_ratio", "h6_ratio", "h7_ratio"]
 ```
@@ -86,42 +86,41 @@ docker build collection/ --tag bach
 
 #### Arguments:
 
-* set: Optional. Default: [1,2,3]. An integer associated with the desired data set to be collected. This can be a list of integers.
+* set: Optional. Default: [1,2,3,4]. An integer associated with the desired data set to be collected. This can be a list of integers.
 * source: Optional. Default: "remote". The location from where to collect the data for the data set(s) -- local or remote. (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)
 * season: Optional. Default: all seasons (via data sets 1.1 and 1.2). An integer or list of integers associated with a desired season to collect data on. Only applicable with data set 2.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette or the URL of a contestant's profile page on the [Bachelor Nation Fandom Wiki](https://bachelor-nation.fandom.com). Only applicable with data set 3.
-* nowrite: Optional. Default: False. Do NOT overwrite any previously saved information from data set 5 in the database (do not dump and create a new table). Applicable with preprocess flag.
 
 #### Examples:
 
-Collect all available data for all data sets from remote sources and overwrite any old data from these data sets (drop and create new ds1, ds2, and ds3 tables) in the database:
+Collect all available data for all data sets from remote sources (overwrite ds1.pkl, ds2.pdl, ds3.pkl, and ds4.pkl):
 ```
 docker run --volume $(pwd):/home/ bach collect.py
 ```
 
-Collect data from The Bachelor/Bachelorette season 14 and overwrite any old data from these data sets (drop and create new ds2 table) in the database:
+Collect data from The Bachelor/Bachelorette season 14 (overwrite ds2.pkl):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --dataset 2 --season 14
 ```
 
-Collect data about The Bachelorette contestant Dale Moss and The Bachelor contestant Cassie Randolph and do NOT overwrite any old data from data set 3:
+Collect data about The Bachelorette contestant Dale Moss and The Bachelor contestant Cassie Randolph (overwrite ds3.pkl):
 ```
-docker run --volume $(pwd):/home/ bach collect.py --dataset 3 --contestant dale_moss "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph" --nowrite
+docker run --volume $(pwd):/home/ bach collect.py --dataset 3 --contestant dale_moss "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
 ```
 
-Collect data from all contestants from all seasons of The Bachelor/Bachelorette, source the data from a local location (./local/raw2.json), and overwrite any old data from these data sets (drop and create new ds2 table) in the database::
+Collect data from all contestants from all seasons of The Bachelor/Bachelorette (overwrite ds2.pkl) and source the data from a local location (./local/raw2.json):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --dataset 2 --source local
 ```
 
-Collect all available data for data sets 1 and 2 and overwrite any old data from these data sets (drop and create new ds1 and ds2 tables) in the database:
+Collect all available data for data sets 1 and 2 (overwrite ds1.pkl and ds2.pkl):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2
 ```
 
-Collect all available data for data sets 1 and 2, collection available data from The Bachelor/Bachelorette seasons 8, 9, and 10, collect available data about contestants Naomi Crespo and Derek Peth, source the data from remote locations, and overwrite any old data in the pertinent database tables (drop and create new ds1, ds2, and ds3 tables):
+Collect all available data for data set 1 (overwrite ds1.pkl), collect available data from The Bachelor/Bachelorette seasons 8, 9, and 10 (overwrite ds2.pkl), collect available data about contestants Naomi Crespo and Derek Peth (overwrite ds3.pkl), collect all available data from contestants with Instagram accounts (overwrite ds4.pkl), and source the data from remote locations:
 ```
-docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2 3 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote
+docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2 3 4 --season 8 9 10 --contestant naomi_crespo derek_peth --source remote
 ```
 
 ## Transformation
@@ -206,8 +205,8 @@ To-do
     - [x] Rename '#' column
   - [x] Bachelor Nation scraper
     - [x] Data sets 2.1, 2.2, and 3
-  - [ ] Instagram scraper
-    - [ ] Data set(s) 4(.?)
+  - [x] Instagram API scraper
+    - [x] Data set 4
 - [x] Multiprocess
 - [x] Options
   - [x] Source
@@ -217,9 +216,10 @@ To-do
   - [x] Evaluate
   - [x] Preprocess
 - [x] Dockerize
-- [ ] Collect all the datas!
+- [x] Collect all the datas!
 - [x] "Transform" the data into a fifth data set
   - [x] Pre-process contestant photos (face images and dlib landmarks)
+    - [ ] Use instagram profile pictures when preprocessing is not successful on headshots from the show
   - [x] Rule of thirds evaluation
   - [x] Rule of fifths evaluation
   - [x] Golden ratio evaluation
@@ -238,9 +238,8 @@ To-do
       - [x] Add 'show' column
       - [x] Add 'season' column
     - [x] Data set 3 (Bachelor Nation)
-    - [ ] Data set 4 (Instagram)
+    - [x] Data set 4 (Instagram)
     - [x] Data set 5 (Evaluated)
-    - [ ] Write data set data from database to an output file
 - [x] Data storage (scratch SQL database, we're using pickled pandas dfs)
   - [x] Save dataframe per data set
     - [x] Create dfs with model keys
