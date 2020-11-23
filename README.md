@@ -125,7 +125,7 @@ docker run --volume $(pwd):/home/ bach collect.py --dataset 1 2 3 4 --season 8 9
 
 ## Transformation
 
-Create a fifth data set by applying transformation methods to data from the other data sets. This fifth data set will contain more granular data of each candidate and will be the data set primarily referenced during analysis.
+Create a fifth data set by applying transformation methods to data from the other data sets. This fifth data set contains preprocessed photos of contestants' faces (originating from headshots from data set 3 or, upon the failure to preprocess a headshot, Instagram profile pictures from data set 4) and the results of three algorithms that attempt to quantify a contestant's general physical attractiveness: the rule of thirds, the rule of fifths, and the golden ratio. This data set is the data set primarily referenced during analysis.
 
 ### Explanation of Preprocessing
 
@@ -158,12 +158,12 @@ docker build collection/ --tag bach
 
 #### Examples:
 
-Create data set 5 by transforming/preprocessing data from the other data sets, overwrite any old data from these data sets (drop and create a new ds5 table) in the database, and perform all algorithms on all records in data set 5:
+Create data set 5 by transforming/preprocessing data from data set 3 and (if applicable) data set 4 (overwrite ds5.pkl) and perform all algorithms on all records in data set 5:
 ```
 docker run --volume $(pwd):/home/ bach transform.py
 ```
 
-Create data set 5 by transforming/preprocessing data from the other data sets and overwrite any old data from these data sets (drop and create a new ds5 table) in the database:
+Create data set 5 by transforming/preprocessing data from data set 3 and (if applicable) data set 4 (overwrite ds5.pkl):
 ```
 docker run --volume $(pwd):/home/ bach transform.py --preprocess
 ```
