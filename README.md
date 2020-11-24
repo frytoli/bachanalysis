@@ -218,7 +218,7 @@ To-do
 - [x] Collect all the datas!
 - [x] "Transform" the data into a fifth data set
   - [x] Pre-process contestant photos (face images and dlib landmarks)
-    - [ ] Use instagram profile pictures when preprocessing is not successful on headshots from the show
+    - [x] Use instagram profile pictures when preprocessing is not successful on headshots from the show
   - [x] Rule of thirds evaluation
   - [x] Rule of fifths evaluation
   - [x] Golden ratio evaluation
