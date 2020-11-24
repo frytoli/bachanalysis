@@ -311,14 +311,17 @@ def main():
 			if len(contestants) == 0:
 				print(f'Mayday! Unable to compile data set 5. Has data set 3 been collected and stored?')
 		else:
-			contestants = []
-			for contestant in args.contestant:
-				names = contestant.lower().split('_')
-				name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
-				# Get contestant's id, name, and photo
-				contestant = df3.loc[df3['name']==name][['id', 'name', 'photo']].values.tolist()
-				if len(contestant) > 0:
-					contestants += contestant
+			# Read-in ds3 as dataframe
+			df3 = bachdata.retrieve_df(3)
+			if not df3.empty:
+				contestants = []
+				for contestant in args.contestant:
+					names = contestant.lower().split('_')
+					name = f'''{names[0][0].upper()}{names[0][1:].lower()} {names[1][0].upper()}{names[1][1:].lower()}'''
+					# Get contestant's id, name, and photo
+					contestant = df3.loc[df3['name']==name][['id', 'name', 'photo']].values.tolist()
+					if len(contestant) > 0:
+						contestants += contestant
 		# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
 		ds5_resp = pool.starmap_async(process_face, contestants)
 		# Separate good and empty response records
