@@ -121,10 +121,24 @@ def set_ds3_ids(df2, df3):
     profile_urls = list(df3['profile_url'])
     for url in profile_urls:
         # Find record in data set 2 that corresponds to the given profile url and get the corresponding id
-        id = df2.loc[df2['profile_url']==url]['id']
-        # Update the associated record in data set 3
-        df3.loc[df3['profile_url'] == url, ['id']] = id
+        row = df2.loc[df2['profile_url']==url]['id'].values
+        if len(row) > 0:
+            # Update the associated record in data set 3
+            df3.loc[df3['profile_url'] == url, 'id'] = row[0]
     return df3
+
+def set_ds4_ids(df3, df4):
+    # Get instagram usernames of all documents for which to set ids
+    usernames = list(df4['username'])
+    for username in usernames:
+        # Find record in data set 3 that has the username in an item in its social media value
+        df3_res = df3.loc[df3['social_media'].apply(lambda x: any([username in y for y in x]))]
+        if len(df3_res) > 0:
+            # Update the associated record in data set 4
+            df4.loc[df4['username']==username, ['id']] = df3_res['id'].iloc[0]
+        else:
+            print(f'Mayday! A record with social media {username} not found')
+    return df4
 
 def getlocal(ds):
     # Initialize data model handler object
@@ -147,7 +161,7 @@ Main
 def main():
     # Retrieve args
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--dataset', dest='dataset', type=int, nargs='+', default=[1, 2, 3], help='an integer associated with a data set (i.e. 4)')
+    parser.add_argument('--dataset', dest='dataset', type=int, nargs='+', default=[1, 2, 3, 4], help='an integer associated with a data set (i.e. 4)')
     parser.add_argument('--source', dest='source', type=str, choices=['remote','local'], default='remote', help='where to gather the data for the data set(s) (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)')
     parser.add_argument('--season', dest='season', type=int, nargs='+', default=[], help='an integer season (only applicable with data sources 3 and 4) (i.e. 11)')
     parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (only applicable with data source 5) (i.e. joelle_fletcher)')
@@ -162,13 +176,16 @@ def main():
     # If source is set to local, read data in from files located in ./local/
     if args.source == 'local':
         pool_resp = pool.map_async(getlocal, args.dataset)
-        df1, df2, df3 = pool_resp.get()
+        df1, df2, df3, df4 = pool_resp.get()
         # Set all ds3 record ids to match ds2
         df3 = set_ds3_ids(df2, df3)
+        # Set all ds4 record ids to match ds3
+        df4 = set_ds4_ids(df3, df4)
         # Save all data set dataframes
         bachdata.save_df(df1, 1)
         bachdata.save_df(df2, 2)
         bachdata.save_df(df3, 3)
+        bachdata.save_df(df3, 4)
     # Else, scrape the data from remote sources
     else:
         # Initialize dataframe variables
