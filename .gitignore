@@ -139,5 +139,4 @@ cython_debug/
 
 # Local
 *.DS_Store
-local/*.pkl
-local/*.cfg
+local
