@@ -249,7 +249,7 @@ def process_face(id, name, b64photo):
 		# Model the record
 		record = bachdata.model_one(5, record)
 	# Return the record
-	return record
+	return id, record
 
 def eval_rule_of_thirds(id, name, face, dlib_landmarks):
 	# Evaluate rule of thirds
@@ -321,7 +321,28 @@ def main():
 					contestants += contestant
 		# Multiprocess rotating, cropping, and finding facial landmarks of contestants' faces via their photos
 		ds5_resp = pool.starmap_async(process_face, contestants)
-		df5 = pd.DataFrame([resp for resp in list(ds5_resp.get()) if len(resp)>0])
+		# Separate good and empty response records
+		ds5_recs = []
+		ds5_null = []
+		for resp in ds5_resp.get():
+			if len(resp[1]) > 0:
+				ds5_recs.append(resp[1])
+			else:
+				ds5_null.append(resp[0])
+		# Attempt to retrieve and preprocess Instagram profile pictures from the contestants whose headshots from the show were not preprocessed successfully
+		if len(ds5_null) > 0:
+			# Load data set 4
+			df4 = bachdata.retrieve_df(4)
+			if not df4.empty:
+				contestants = []
+				for id in ds5_null:
+					contestant = df4.loc[df4['id']==id][['id', 'name', 'prof_photo']].values.tolist()
+					if len(contestant) > 0:
+						contestants.append(contestant[0])
+				# Multiprocess preprocessing again
+				ds5_resp = pool.starmap_async(process_face, contestants)
+				ds5_recs += [resp[1] for resp in list(ds5_resp.get()) if len(resp[1])>0]
+		df5 = pd.DataFrame(ds5_recs)
 		# Save data set 5
 		bachdata.save_df(df5, 5)
 
