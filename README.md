@@ -133,6 +133,7 @@ Create a fifth data set by applying transformation methods to data from the othe
 | --- | --- | --- |
 | ![](media/brian_bowles/original.jpeg) | ![](media/brian_bowles/rotated.jpeg) | ![](media/brian_bowles/cropped.jpeg) |
 | ![](media/amanda_goerlitz/original.jpeg) | ![](media/amanda_goerlitz/rotated.jpeg) | ![](media/amanda_goerlitz/cropped.jpeg) |
+| ![](media/alexis_waters/original.jpeg) | ![](media/alexis_waters/rotated.jpeg) | ![](media/alexis_waters/cropped.jpeg) |
 
 ### Explanation of the Attractiveness Algorithms
 
