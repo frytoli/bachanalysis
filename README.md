@@ -28,6 +28,11 @@ Transform/preprocess data for data set 5 and perform evaluations with all algori
 docker run --volume $(pwd):/home/ bach transform.py
 ```
 
+Review analysis with Jupyter:
+```
+jupyter notebook analysis/bachanalysis.ipynb
+```
+
 ## Data sets:
 
 1. General data about the shows
