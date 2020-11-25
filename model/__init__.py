@@ -11,7 +11,7 @@ import uuid
 import re
 import os
 
-class bachdata():
+class bachmodel():
     def __init__(self):
         # Data model references for all data sets
         self.models = {
@@ -112,7 +112,7 @@ class bachdata():
             }
         }
         # Global var for path to volume within container
-        self.PATH_TO_VOLUME = os.path.join(os.getcwd(), 'local')
+        self.PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
 
     def save_df(self, df, ds):
         try:

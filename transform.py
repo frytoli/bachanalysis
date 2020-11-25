@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 import argparse
 import base64
-import data
+import model
 import dlib
 import math
 import json
@@ -153,7 +153,7 @@ Crop a contestant's photo to just their face
 '''
 def process_face(id, name, b64photo):
 	# Initialize data model handler object
-	bachdata = data.bachdata()
+	bachmodel = model.bachmodel()
 
 	# Load pre-trained classifier
 	face_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml')
@@ -247,7 +247,7 @@ def process_face(id, name, b64photo):
 		record = {}
 	if len(record) > 0:
 		# Model the record
-		record = bachdata.model_one(5, record)
+		record = bachmodel.model_one(5, record)
 	# Return the record
 	return id, record
 
@@ -283,7 +283,7 @@ def main():
 	pool = Pool(processes=5)
 
 	# Initialize data model handler object
-	bachdata = data.bachdata()
+	bachmodel = model.bachmodel()
 
 	# Initialize dataframe variable
 	df5 = None
@@ -304,7 +304,7 @@ def main():
 		# If no contestants are given by the user, process every contestant from data set 3 in the database
 		if len(args.contestant) == 0:
 			# Read-in ds3 as dataframe
-			df3 = bachdata.retrieve_df(3)
+			df3 = bachmodel.retrieve_df(3)
 			if not df3.empty:
 				# Retrieve list of contestants
 				contestants = df3[['id', 'name', 'photo']].values.tolist()
@@ -312,7 +312,7 @@ def main():
 				print(f'Mayday! Unable to compile data set 5. Has data set 3 been collected and stored?')
 		else:
 			# Read-in ds3 as dataframe
-			df3 = bachdata.retrieve_df(3)
+			df3 = bachmodel.retrieve_df(3)
 			if not df3.empty:
 				contestants = []
 				for contestant in args.contestant:
@@ -335,7 +335,7 @@ def main():
 		# Attempt to retrieve and preprocess Instagram profile pictures from the contestants whose headshots from the show were not preprocessed successfully
 		if len(ds5_null) > 0:
 			# Load data set 4
-			df4 = bachdata.retrieve_df(4)
+			df4 = bachmodel.retrieve_df(4)
 			if not df4.empty:
 				contestants = []
 				for id in ds5_null:
@@ -347,13 +347,13 @@ def main():
 				ds5_recs += [resp[1] for resp in list(ds5_resp.get()) if len(resp[1])>0]
 		df5 = pd.DataFrame(ds5_recs)
 		# Save data set 5
-		bachdata.save_df(df5, 5)
+		bachmodel.save_df(df5, 5)
 
 	# Perform algorithms if specified
 	if evaluate:
 		# If data set 5 hasn't been read-in to a dataframe, attempt to read data set 5 from pickled file
 		if not isinstance(df5, pd.DataFrame):
-			df5 = bachdata.retrieve_df(5)
+			df5 = bachmodel.retrieve_df(5)
 		if not df5.empty:
 			# If no contestants are given by the user, retrieve all pre-processed document ids (contestant names) from the database
 			if len(args.contestant) == 0:
@@ -378,7 +378,7 @@ def main():
 				for key, value in rec.items():
 					df5.loc[df5['id'] == id, [key]] = value
 			# Save data set 5
-			bachdata.save_df(df5, 5)
+			bachmodel.save_df(df5, 5)
 		# Rule of fifths
 		if 'fifths' in args.algorithm:
 			# Multiprocess
@@ -390,7 +390,7 @@ def main():
 				for key, value in rec.items():
 					df5.loc[df5['id'] == id, [key]] = value
 			# Save data set 5
-			bachdata.save_df(df5, 5)
+			bachmodel.save_df(df5, 5)
 		# Golden ratio
 		if 'golden' in args.algorithm:
 			# Multiprocess
@@ -402,7 +402,7 @@ def main():
 				for key, value in rec.items():
 					df5.loc[df5['id'] == id, [key]] = value
 			# Save data set 5
-			bachdata.save_df(df5, 5)
+			bachmodel.save_df(df5, 5)
 
 if __name__ == '__main__':
 	main()

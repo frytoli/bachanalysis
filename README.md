@@ -18,7 +18,7 @@ Collect all data sets from remote sources:
 docker run --volume $(pwd):/home/ bach collect.py
 ```
 
-Collect all data sets from local sources (note that all local raw files must exist in the local/ directory and be named rawN.json where N is the integer data set, such as raw1.json for data set 1):
+Collect all data sets from local sources (note that all local raw files must exist in the ./data/ directory and be named rawN.json where N is the integer data set, such as raw1.json for data set 1):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --source local
 ```
@@ -26,6 +26,11 @@ docker run --volume $(pwd):/home/ bach collect.py --source local
 Transform/preprocess data for data set 5 and perform evaluations with all algorithms:
 ```
 docker run --volume $(pwd):/home/ bach transform.py
+```
+
+Review analysis with Jupyter:
+```
+jupyter notebook analysis/bachanalysis.ipynb
 ```
 
 ## Data sets:
@@ -42,7 +47,7 @@ docker run --volume $(pwd):/home/ bach transform.py
 
 ## Data Models and Data Storage
 
-Data is stored in pickled pandas dataframes saved in the ./local/ directory. The structure of these dataframes, as defined by the data model, is as follows:
+Data is stored in pickled pandas dataframes saved in the ./data/ directory. The structure of these dataframes, as defined by the data model, is as follows:
 
 ```
 >> df1.columns
@@ -57,7 +62,7 @@ Data is stored in pickled pandas dataframes saved in the ./local/ directory. The
 ["id", "name", "dlib_landmarks", "face_photo", "face_height", "face_width", "theoretical_thirds", "experimental_thirds1", "experimental_thirds2", "experimental_thirds3", "theoretical_fifths", "experimental_fifths1", "experimental_fifths2", "experimental_fifths3", "experimental_fifths4", "experimental_fifths5", "hw_ratio", "v1_ratio", "v2_ratio", "v3_ratio", "v4_ratio", "v5_ratio", "v6_ratio", "v7_ratio", "h1_ratio", "h2_ratio", "h3_ratio", "h4_ratio", "h5_ratio", "h6_ratio", "h7_ratio"]
 ```
 
-### Data Class
+### Model Class
 
 The data is modeled as above in JSON format.
 
@@ -108,7 +113,7 @@ Collect data about The Bachelorette contestant Dale Moss and The Bachelor contes
 docker run --volume $(pwd):/home/ bach collect.py --dataset 3 --contestant dale_moss "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
 ```
 
-Collect data from all contestants from all seasons of The Bachelor/Bachelorette (overwrite ds2.pkl) and source the data from a local location (./local/raw2.json):
+Collect data from all contestants from all seasons of The Bachelor/Bachelorette (overwrite ds2.pkl) and source the data from a local location (./data/raw2.json):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --dataset 2 --source local
 ```

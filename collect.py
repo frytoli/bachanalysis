@@ -12,7 +12,7 @@ import pandas as pd
 import argparse
 import datetime
 import random
-import data
+import model
 import json
 import pytz
 import time
@@ -20,7 +20,7 @@ import os
 import re
 
 # Global var for path to volume within container
-PATH_TO_VOLUME = os.path.join(os.getcwd(), 'local')
+PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
 
 '''
 Scrape data Sets 1.1 and 1.2
@@ -30,13 +30,13 @@ https://en.wikipedia.org/wiki/The_Bachelorette
 '''
 def scrape1():
     # Initialize data model handler object
-    bachdata = data.bachdata()
+    bachmodel = data.bachmodel()
     # Scrape
     scraped = wikipedia.scrape('bachelor')
     time.sleep(random.uniform(3,8))
     scraped += wikipedia.scrape('bachelorette')
     # Model the raw data
-    modeled_data = bachdata.model_many(1, scraped)
+    modeled_data = bachmodel.model_many(1, scraped)
     # Return modeled json data
     return modeled_data
 
@@ -48,7 +48,7 @@ https://bachelor-nation.fandom.com/wiki/The_Bachelorette_(Season_1)
 '''
 def scrape2(show, season):
     # Initialize data model handler object
-    bachdata = data.bachdata()
+    bachmodel = data.bachmodel()
     # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
     # Scrape
@@ -59,7 +59,7 @@ def scrape2(show, season):
     # Continue if response is not empty
     if len(scraped) > 0:
         # Model the raw data
-        modeled_data = bachdata.model_many(2, scraped)
+        modeled_data = bachmodel.model_many(2, scraped)
         # Return modeled json data
         return modeled_data
 
@@ -70,7 +70,7 @@ https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
 def scrape3(id, contestant):
     # Initialize data model handler object
-    bachdata = data.bachdata()
+    bachmodel = data.bachmodel()
     # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
     # Scrape
@@ -82,7 +82,7 @@ def scrape3(id, contestant):
         # Add profile_url to record
         scraped['profile_url'] = contestant
         # Model the raw data
-        modeled_data = bachdata.model_one(3, scraped)
+        modeled_data = bachmodel.model_one(3, scraped)
         # Return modeled json data
         return modeled_data
 
@@ -93,7 +93,7 @@ https://www.instagram.com
 '''
 def compile4(ig_api, id, contestant_ig_url):
     # Initialize data model handler object
-    bachdata = data.bachdata()
+    bachmodel = data.bachmodel()
     # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
     # Extract instagram username from url
@@ -109,7 +109,7 @@ def compile4(ig_api, id, contestant_ig_url):
             # Add url to record
             returned['url'] = contestant_ig_url
             # Model the raw data
-            modeled_data = bachdata.model_one(4, returned)
+            modeled_data = bachmodel.model_one(4, returned)
             # Return modeled json data
             return modeled_data
 
@@ -142,18 +142,18 @@ def set_ds4_ids(df3, df4):
 
 def getlocal(ds):
     # Initialize data model handler object
-    bachdata = data.bachdata()
+    bachmodel = data.bachmodel()
     # Validate existence of file
     if os.path.exists(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json')):
-        # Read local file in from ./local/
+        # Read local file in from ./data/
         with open(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json'), 'r') as injson:
             raw_data = json.load(injson)
         # Model the raw data
-        modeled_data = bachdata.model_many(ds, raw_data)
+        modeled_data = bachmodel.model_many(ds, raw_data)
         # Convert the modeled data to pandas df and returm
         return pd.DataFrame(modeled_data)
     else:
-        print(f'Mayday! No input file ./local/raw{ds}.json found')
+        print(f'Mayday! No input file ./data/raw{ds}.json found')
 
 '''
 Main
@@ -171,9 +171,9 @@ def main():
     pool = Pool(processes=5)
 
     # Initialize data model handler object
-    bachdata = data.bachdata()
+    bachmodel = data.bachmodel()
 
-    # If source is set to local, read data in from files located in ./local/
+    # If source is set to local, read data in from files located in ./data/
     if args.source == 'local':
         pool_resp = pool.map_async(getlocal, args.dataset)
         df1, df2, df3, df4 = pool_resp.get()
@@ -182,10 +182,10 @@ def main():
         # Set all ds4 record ids to match ds3
         df4 = set_ds4_ids(df3, df4)
         # Save all data set dataframes
-        bachdata.save_df(df1, 1)
-        bachdata.save_df(df2, 2)
-        bachdata.save_df(df3, 3)
-        bachdata.save_df(df3, 4)
+        bachmodel.save_df(df1, 1)
+        bachmodel.save_df(df2, 2)
+        bachmodel.save_df(df3, 3)
+        bachmodel.save_df(df3, 4)
     # Else, scrape the data from remote sources
     else:
         # Initialize dataframe variables
@@ -198,12 +198,12 @@ def main():
             ds1_data = scrape1()
             df1 = pd.DataFrame(list(ds1_data))
             # Save data set 1
-            bachdata.save_df(df1, 1)
+            bachmodel.save_df(df1, 1)
         # Data set 2
         if 2 in args.dataset:
             # If data set 1 hasn't been read-in to a dataframe, attempt to read data set 1 from pickled file
             if not isinstance(df1, pd.DataFrame):
-                df1 = bachdata.retrieve_df(1)
+                df1 = bachmodel.retrieve_df(1)
             if not df1.empty:
                 seasons = []
                 for show in [0,1]:
@@ -225,12 +225,12 @@ def main():
                 df2 = pd.DataFrame(ds2_data)
                 print(len(df2))
                 # Save data set 2
-                bachdata.save_df(df2, 2)
+                bachmodel.save_df(df2, 2)
         # Data set 3
         if 3 in args.dataset:
             # If data set 2 hasn't been read-in to a dataframe, attempt to read data set 2 from pickled file
             if not isinstance(df2, pd.DataFrame):
-                df2 = bachdata.retrieve_df(2)
+                df2 = bachmodel.retrieve_df(2)
             if not df2.empty:
                 contestants = df2[['id','profile_url']].values.tolist()
                 if len(contestants) > 0:
@@ -240,12 +240,12 @@ def main():
                 # Multiprocess
                 df3 = pd.DataFrame([rec for rec in list(ds3_resp.get()) if rec != None])
                 # Save data set 3
-                bachdata.save_df(df3, 3)
+                bachmodel.save_df(df3, 3)
         # Data set 4
         if 4 in args.dataset:
             # If data set 3 hasn't been read-in to a dataframe, attempt to read data set 3 from pickled file
             if not isinstance(df3, pd.DataFrame):
-                df3 = bachdata.retrieve_df(3)
+                df3 = bachmodel.retrieve_df(3)
             if not df3.empty:
                 # Initialize instagram api object
                 ig = instagram.api(os.path.join(PATH_TO_VOLUME, 'ig.cfg'))
@@ -263,7 +263,7 @@ def main():
                 # Multiprocess
                 df4 = pd.DataFrame([rec for rec in list(ds4_resp.get()) if rec != None])
                 # Save data set 4
-                bachdata.save_df(df4, 4)
+                bachmodel.save_df(df4, 4)
 
 
 if __name__ == '__main__':
