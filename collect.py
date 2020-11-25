@@ -30,7 +30,7 @@ https://en.wikipedia.org/wiki/The_Bachelorette
 '''
 def scrape1():
     # Initialize data model handler object
-    bachmodel = model.bachmodel()
+    bachmodel = model.bachmodel(PATH_TO_VOLUME)
     # Scrape
     scraped = wikipedia.scrape('bachelor')
     time.sleep(random.uniform(3,8))
@@ -48,7 +48,7 @@ https://bachelor-nation.fandom.com/wiki/The_Bachelorette_(Season_1)
 '''
 def scrape2(show, season):
     # Initialize data model handler object
-    bachmodel = model.bachmodel()
+    bachmodel = model.bachmodel(PATH_TO_VOLUME)
     # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
     # Scrape
@@ -70,7 +70,7 @@ https://bachelor-nation.fandom.com/wiki/Alex_Michel
 '''
 def scrape3(id, contestant):
     # Initialize data model handler object
-    bachmodel = model.bachmodel()
+    bachmodel = model.bachmodel(PATH_TO_VOLUME)
     # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
     # Scrape
@@ -93,7 +93,7 @@ https://www.instagram.com
 '''
 def compile4(ig_api, id, contestant_ig_url):
     # Initialize data model handler object
-    bachmodel = model.bachmodel()
+    bachmodel = model.bachmodel(PATH_TO_VOLUME)
     # Assume asyncronous scraping
     time.sleep(random.uniform(3,8))
     # Extract instagram username from url
@@ -142,7 +142,7 @@ def set_ds4_ids(df3, df4):
 
 def getlocal(ds):
     # Initialize data model handler object
-    bachmodel = model.bachmodel()
+    bachmodel = model.bachmodel(PATH_TO_VOLUME)
     # Validate existence of file
     if os.path.exists(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json')):
         # Read local file in from ./data/
@@ -171,7 +171,7 @@ def main():
     pool = Pool(processes=5)
 
     # Initialize data model handler object
-    bachmodel = model.bachmodel()
+    bachmodel = model.bachmodel(PATH_TO_VOLUME)
 
     # If source is set to local, read data in from files located in ./data/
     if args.source == 'local':

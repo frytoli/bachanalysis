@@ -23,6 +23,9 @@ import json
 import cv2
 import os
 
+# Global var for path to volume within container
+PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
+
 '''
 Helper functions
 '''
@@ -153,7 +156,7 @@ Crop a contestant's photo to just their face
 '''
 def process_face(id, name, b64photo):
 	# Initialize data model handler object
-	bachmodel = model.bachmodel()
+	bachmodel = model.bachmodel(PATH_TO_VOLUME)
 
 	# Load pre-trained classifier
 	face_cascade = cv2.CascadeClassifier(f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml')
@@ -283,7 +286,7 @@ def main():
 	pool = Pool(processes=5)
 
 	# Initialize data model handler object
-	bachmodel = model.bachmodel()
+	bachmodel = model.bachmodel(PATH_TO_VOLUME)
 
 	# Initialize dataframe variable
 	df5 = None

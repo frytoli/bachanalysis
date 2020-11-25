@@ -12,7 +12,7 @@ import re
 import os
 
 class bachmodel():
-    def __init__(self):
+    def __init__(self, localdir):
         # Data model references for all data sets
         self.models = {
             1: {
@@ -112,11 +112,11 @@ class bachmodel():
             }
         }
         # Global var for path to volume within container
-        self.PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
+        self.localdir = localdir
 
     def save_df(self, df, ds):
         try:
-            df.to_pickle(os.path.join(self.PATH_TO_VOLUME, f'ds{ds}.pkl'))
+            df.to_pickle(os.path.join(self.localdir, f'ds{ds}.pkl'))
             return True
         except Exception as e:
             print(f'Mayday! {e}')
@@ -124,7 +124,7 @@ class bachmodel():
 
     def retrieve_df(self, ds):
         try:
-            df = pd.read_pickle(os.path.join(self.PATH_TO_VOLUME, f'ds{ds}.pkl'))
+            df = pd.read_pickle(os.path.join(self.localdir, f'ds{ds}.pkl'))
             return df
         except Exception as e:
             print(f'Mayday! {e}')
