@@ -123,11 +123,11 @@ Create a fifth data set by applying transformation methods to data from the othe
 
 ### Explanation of Preprocessing
 
-| Original | Straightened | Cropped |
-| --- | --- | --- |
-| ![](media/brian_bowles/original.jpeg) | ![](media/brian_bowles/rotated.jpeg) | ![](media/brian_bowles/cropped.jpeg) |
-| ![](media/amanda_goerlitz/original.jpeg) | ![](media/amanda_goerlitz/rotated.jpeg) | ![](media/amanda_goerlitz/cropped.jpeg) |
-| ![](media/alexis_waters/original.jpeg) | ![](media/alexis_waters/rotated.jpeg) | ![](media/alexis_waters/cropped.jpeg) |
+| Original | Straightened | Cropped | Source
+| --- | --- | --- | --- |
+| ![](media/brian_bowles/original.jpeg) | ![](media/brian_bowles/rotated.jpeg) | ![](media/brian_bowles/cropped.jpeg) | https://bachelor-nation.fandom.com/wiki/Brian_Bowles |
+| ![](media/amanda_goerlitz/original.jpeg) | ![](media/amanda_goerlitz/rotated.jpeg) | ![](media/amanda_goerlitz/cropped.jpeg) | https://bachelor-nation.fandom.com/wiki/Amanda_Goerlitz |
+| ![](media/alexis_waters/original.jpeg) | ![](media/alexis_waters/rotated.jpeg) | ![](media/alexis_waters/cropped.jpeg) | https://www.instagram.com/alexiswaters_ |
 
 ### Explanation of the Attractiveness Algorithms
 
