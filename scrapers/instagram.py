@@ -34,6 +34,8 @@ class api():
             },
             headers=self.headers
         )
+        # Raise status code error if one occurs
+        login_r.raise_for_status()
         try:
             rjson = login_r.json()
         except:
@@ -76,14 +78,16 @@ class api():
                             }
                         )
                 except ssl.SSLEOFError:
-                    print(f'Mayday! SSLEOFError prevented retrieving Instagram profile information for {contestant}')
+                    print(f'Mayday! SSLEOFError prevented retrieving Instagram profile information for {usename}')
                     return {}
             # Ensure that json data was returned
             try:
                 ig_data = r.json()
             except ValueError:
-                print(f'Mayday! Response from Instagram for user {contestant} could not be converted to json')
+                print(f'Mayday! Response from Instagram for user {usename} could not be converted to json')
                 return {}
+            # Raise status code error if one occurs
+            r.raise_for_status()
 
             # Prepare data var
             data = {}
@@ -111,7 +115,7 @@ class api():
                             'csrftoken': self.csrftoken
                         }
                     )
-                    if not r.raise_for_status(): # FIX THIS
+                    if r:
                         prof_pic = f"data:{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
                     else:
                         prof_pic = None
@@ -144,7 +148,7 @@ class api():
                                         )
                                     except Excption as e:
                                         print(f'Mayday! {e}')
-                                    if not r.raise_for_status(): # FIX THIS
+                                    if r:
                                         photo = f"data:{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
                                     else:
                                         photo = None
