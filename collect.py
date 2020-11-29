@@ -160,12 +160,12 @@ def main():
                     try:
                         max_season = int(df1[df1['show']==show].max()['season'])
                     except TypeError:
-                        print('Mayday! Unable to convert max season value to int')
+                        print('  [!] Unable to convert max season value to int')
                         max_season = 0
                     if max_season > 0:
                         seasons += [(show, season) for season in range(1, max_season+1)]
                     else:
-                        print('Mayday! Unable to collect data set 2. Has data set 1 been collected and stored?')
+                        print('  [!] Unable to collect data set 2. Has data set 1 been collected and stored?')
         # Multiprocess
         ds2_resp = pool.starmap_async(scrape2, seasons)
         ds2_data = []
@@ -194,7 +194,7 @@ def main():
             else:
                 contestants = df2[['id','profile_url']].values.tolist()
                 if len(contestants) == 0:
-                    print(f'Mayday! Unable to collect data set 3. Has data set 2 been collected and stored?')
+                    print(f'  [!] Unable to collect data set 3. Has data set 2 been collected and stored?')
         # Multiprocess
         ds3_resp = pool.starmap_async(scrape3, contestants)
         df3 = pd.DataFrame([rec for rec in list(ds3_resp.get()) if rec != None])
@@ -229,7 +229,7 @@ def main():
                         if 'instagram' in url.lower():
                             contestants_igs.append((ig, contestant[0], url))
                 if len(contestants_igs) == 0:
-                    print(f'Mayday! Unable to collect data set 4. Has data set 3 been collected and stored?')
+                    print(f'  [!] Unable to collect data set 4. Has data set 3 been collected and stored?')
         # Multiprocess
         ds4_resp = pool.starmap_async(compile4, contestants_igs)
         df4 = pd.DataFrame([rec for rec in list(ds4_resp.get()) if rec != None])
