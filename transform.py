@@ -25,6 +25,8 @@ import os
 
 # Global var for path to volume within container
 PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
+if not os.path.exists(PATH_TO_VOLUME):
+    os.mkdir(PATH_TO_VOLUME)
 
 '''
 Helper functions

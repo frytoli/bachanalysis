@@ -21,6 +21,8 @@ import re
 
 # Global var for path to volume within container
 PATH_TO_VOLUME = os.path.join(os.getcwd(), 'data')
+if not os.path.exists(PATH_TO_VOLUME):
+    os.mkdir(PATH_TO_VOLUME)
 
 '''
 Scrape data Sets 1.1 and 1.2
