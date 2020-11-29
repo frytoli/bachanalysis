@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 '''
-* Data collection (from remote and local sources)
+* Data collection
 * Facilitate the conversion of raw data into the data model format (json)
-* Facilitate the storage of modeled data (sql database)
+* Facilitate the storage of modeled data (pickled (serialized) pandas dataframes)
 '''
 
 from multiprocessing import Pool
@@ -89,7 +89,7 @@ def scrape3(id, contestant):
 '''
 Compile data Set 4
 Collect social media data and photos of one Bachelor/Bachelorette cast member
-https://www.instagram.com
+https://www.instagram.com (Undocumented Instagram API)
 '''
 def compile4(ig_api, id, contestant_ig_url):
     # Initialize data model handler object
@@ -114,55 +114,12 @@ def compile4(ig_api, id, contestant_ig_url):
             return modeled_data
 
 '''
-Data set from local file
-'''
-def set_ds3_ids(df2, df3):
-    # Get profile_urls of all documents for which to set ids
-    profile_urls = list(df3['profile_url'])
-    for url in profile_urls:
-        # Find record in data set 2 that corresponds to the given profile url and get the corresponding id
-        row = df2.loc[df2['profile_url']==url]['id'].values
-        if len(row) > 0:
-            # Update the associated record in data set 3
-            df3.loc[df3['profile_url'] == url, 'id'] = row[0]
-    return df3
-
-def set_ds4_ids(df3, df4):
-    # Get instagram usernames of all documents for which to set ids
-    usernames = list(df4['username'])
-    for username in usernames:
-        # Find record in data set 3 that has the username in an item in its social media value
-        df3_res = df3.loc[df3['social_media'].apply(lambda x: any([username in y for y in x]))]
-        if len(df3_res) > 0:
-            # Update the associated record in data set 4
-            df4.loc[df4['username']==username, ['id']] = df3_res['id'].iloc[0]
-        else:
-            print(f'Mayday! A record with social media {username} not found')
-    return df4
-
-def getlocal(ds):
-    # Initialize data model handler object
-    bachmodel = model.bachmodel(PATH_TO_VOLUME)
-    # Validate existence of file
-    if os.path.exists(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json')):
-        # Read local file in from ./data/
-        with open(os.path.join(PATH_TO_VOLUME, f'raw{ds}.json'), 'r') as injson:
-            raw_data = json.load(injson)
-        # Model the raw data
-        modeled_data = bachmodel.model_many(ds, raw_data)
-        # Convert the modeled data to pandas df and returm
-        return pd.DataFrame(modeled_data)
-    else:
-        print(f'Mayday! No input file ./data/raw{ds}.json found')
-
-'''
 Main
 '''
 def main():
     # Retrieve args
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--dataset', dest='dataset', type=int, nargs='+', default=[1, 2, 3, 4], help='an integer associated with a data set (i.e. 4)')
-    parser.add_argument('--source', dest='source', type=str, choices=['remote','local'], default='remote', help='where to gather the data for the data set(s) (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)')
     parser.add_argument('--season', dest='season', type=int, nargs='+', default=[], help='an integer season (only applicable with data sources 3 and 4) (i.e. 11)')
     parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (only applicable with data source 5) (i.e. joelle_fletcher)')
     args = parser.parse_args()
@@ -173,39 +130,30 @@ def main():
     # Initialize data model handler object
     bachmodel = model.bachmodel(PATH_TO_VOLUME)
 
-    # If source is set to local, read data in from files located in ./data/
-    if args.source == 'local':
-        pool_resp = pool.map_async(getlocal, args.dataset)
-        df1, df2, df3, df4 = pool_resp.get()
-        # Set all ds3 record ids to match ds2
-        df3 = set_ds3_ids(df2, df3)
-        # Set all ds4 record ids to match ds3
-        df4 = set_ds4_ids(df3, df4)
-        # Save all data set dataframes
+    # Initialize dataframe variables
+    df1 = None
+    df2 = None
+    df3 = None
+    # Data set 1
+    if 1 in args.dataset:
+        # Scrape data set 1
+        ds1_data = scrape1()
+        df1 = pd.DataFrame(list(ds1_data))
+        # Save data set 1
         bachmodel.save_df(df1, 1)
-        bachmodel.save_df(df2, 2)
-        bachmodel.save_df(df3, 3)
-        bachmodel.save_df(df3, 4)
-    # Else, scrape the data from remote sources
-    else:
-        # Initialize dataframe variables
-        df1 = None
-        df2 = None
-        df3 = None
-        # Data set 1
-        if 1 in args.dataset:
-            # Scrape data set 1
-            ds1_data = scrape1()
-            df1 = pd.DataFrame(list(ds1_data))
-            # Save data set 1
-            bachmodel.save_df(df1, 1)
-        # Data set 2
-        if 2 in args.dataset:
+    # Data set 2
+    if 2 in args.dataset:
+        seasons = []
+        # If season argument is specified, collect only the given seasons
+        if len(args.season) > 0:
+            for show in [0,1]:
+                seasons += [(show, season) for season in args.season]
+        # Otherwise, collect all seasons available from data set 1
+        else:
             # If data set 1 hasn't been read-in to a dataframe, attempt to read data set 1 from pickled file
             if not isinstance(df1, pd.DataFrame):
                 df1 = bachmodel.retrieve_df(1)
             if not df1.empty:
-                seasons = []
                 for show in [0,1]:
                     try:
                         max_season = int(df1[df1['show']==show].max()['season'])
@@ -216,38 +164,59 @@ def main():
                         seasons += [(show, season) for season in range(1, max_season+1)]
                     else:
                         print('Mayday! Unable to collect data set 2. Has data set 1 been collected and stored?')
-                # Multiprocess
-                ds2_resp = pool.starmap_async(scrape2, seasons)
-                ds2_data = []
-                for recs in ds2_resp.get():
-                    if recs:
-                        ds2_data += recs
-                df2 = pd.DataFrame(ds2_data)
-                # Save data set 2
-                bachmodel.save_df(df2, 2)
-        # Data set 3
-        if 3 in args.dataset:
-            # If data set 2 hasn't been read-in to a dataframe, attempt to read data set 2 from pickled file
-            if not isinstance(df2, pd.DataFrame):
-                df2 = bachmodel.retrieve_df(2)
-            if not df2.empty:
+        # Multiprocess
+        ds2_resp = pool.starmap_async(scrape2, seasons)
+        ds2_data = []
+        for recs in ds2_resp.get():
+            if recs:
+                ds2_data += recs
+        df2 = pd.DataFrame(ds2_data)
+        # Save data set 2
+        bachmodel.save_df(df2, 2)
+    # Data set 3
+    if 3 in args.dataset:
+        contestants = []
+        # If data set 2 hasn't been read-in to a dataframe, attempt to read data set 2 from pickled file
+        if not isinstance(df2, pd.DataFrame):
+            df2 = bachmodel.retrieve_df(2)
+        if not df2.empty:
+            # If contestant argument is specified, collect only the given contestants
+            if len(args.contestant) > 0:
+                for contestant in args.contestant:
+                    # Find contestant information and save
+                    name = f'''{contestant.split('_')[0][0].upper()}{contestant.split('_')[0][1:].lower()} {contestant.split('_')[1][0].upper()}{contestant.split('_')[1][1:].lower()}'''
+                    contestant = df2[df2['name'] == name][['id', 'profile_url']].values.tolist()
+                    contestants += contestant
+            # Else, collect all contestants available from data set 2
+            else:
                 contestants = df2[['id','profile_url']].values.tolist()
-                if len(contestants) > 0:
-                    ds3_resp = pool.starmap_async(scrape3, contestants)
-                else:
+                if len(contestants) == 0:
                     print(f'Mayday! Unable to collect data set 3. Has data set 2 been collected and stored?')
-                # Multiprocess
-                df3 = pd.DataFrame([rec for rec in list(ds3_resp.get()) if rec != None])
-                # Save data set 3
-                bachmodel.save_df(df3, 3)
-        # Data set 4
-        if 4 in args.dataset:
-            # If data set 3 hasn't been read-in to a dataframe, attempt to read data set 3 from pickled file
-            if not isinstance(df3, pd.DataFrame):
-                df3 = bachmodel.retrieve_df(3)
-            if not df3.empty:
-                # Initialize instagram api object
-                ig = instagram.api(os.path.join(PATH_TO_VOLUME, 'ig.cfg'))
+        # Multiprocess
+        ds3_resp = pool.starmap_async(scrape3, contestants)
+        df3 = pd.DataFrame([rec for rec in list(ds3_resp.get()) if rec != None])
+        # Save data set 3
+        bachmodel.save_df(df3, 3)
+    # Data set 4
+    if 4 in args.dataset:
+        contestants_igs = []
+        # Initialize instagram api object
+        ig = instagram.api(os.path.join(PATH_TO_VOLUME, 'ig.cfg'))
+        # If data set 3 hasn't been read-in to a dataframe, attempt to read data set 3 from pickled file
+        if not isinstance(df3, pd.DataFrame):
+            df3 = bachmodel.retrieve_df(3)
+        if not df3.empty:
+            # If contestant argument is specified, collect only the given contestants
+            if len(args.contestant) > 0:
+                for contestant in args.contestant:
+                    # Find contestant information and save
+                    name = f'''{contestant.split('_')[0][0].upper()}{contestant.split('_')[0][1:].lower()} {contestant.split('_')[1][0].upper()}{contestant.split('_')[1][1:].lower()}'''
+                    contestant = df3[df3['name'] == name][['id','social_media']].values.tolist()[0]
+                    for url in contestant[1]:
+                        if 'instagram' in url.lower():
+                            contestants_igs.append((ig, contestant[0], url))
+            # Else, collect all contestants available from data set 3
+            else:
                 # Retrieve contestants' social media information from data set 3
                 contestants = df3[df3['social_media'].str.len() > 0][['id','social_media']].values.tolist()
                 contestants_igs = []
@@ -255,14 +224,13 @@ def main():
                     for url in contestant[1]:
                         if 'instagram' in url.lower():
                             contestants_igs.append((ig, contestant[0], url))
-                if len(contestants_igs) > 0:
-                    ds4_resp = pool.starmap_async(compile4, contestants_igs)
-                else:
+                if len(contestants_igs) == 0:
                     print(f'Mayday! Unable to collect data set 4. Has data set 3 been collected and stored?')
-                # Multiprocess
-                df4 = pd.DataFrame([rec for rec in list(ds4_resp.get()) if rec != None])
-                # Save data set 4
-                bachmodel.save_df(df4, 4)
+        # Multiprocess
+        ds4_resp = pool.starmap_async(compile4, contestants_igs)
+        df4 = pd.DataFrame([rec for rec in list(ds4_resp.get()) if rec != None])
+        # Save data set 4
+        bachmodel.save_df(df4, 4)
 
 
 if __name__ == '__main__':

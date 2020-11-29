@@ -18,11 +18,6 @@ Collect all data sets from remote sources:
 docker run --volume $(pwd):/home/ bach collect.py
 ```
 
-Collect all data sets from local sources (note that all local raw files must exist in the ./data/ directory and be named rawN.json where N is the integer data set, such as raw1.json for data set 1):
-```
-docker run --volume $(pwd):/home/ bach collect.py --source local
-```
-
 Transform/preprocess data for data set 5 and perform evaluations with all algorithms:
 ```
 docker run --volume $(pwd):/home/ bach transform.py
@@ -92,7 +87,6 @@ docker build collection/ --tag bach
 #### Arguments:
 
 * set: Optional. Default: [1,2,3,4]. An integer associated with the desired data set to be collected. This can be a list of integers.
-* source: Optional. Default: "remote". The location from where to collect the data for the data set(s) -- local or remote. (local files must be named raw{ds}.json where ds is the number associated with the data set, i.e. raw2.json)
 * season: Optional. Default: all seasons (via data sets 1.1 and 1.2). An integer or list of integers associated with a desired season to collect data on. Only applicable with data set 2.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette or the URL of a contestant's profile page on the [Bachelor Nation Fandom Wiki](https://bachelor-nation.fandom.com). Only applicable with data set 3.
 
@@ -111,11 +105,6 @@ docker run --volume $(pwd):/home/ bach collect.py --dataset 2 --season 14
 Collect data about The Bachelorette contestant Dale Moss and The Bachelor contestant Cassie Randolph (overwrite ds3.pkl):
 ```
 docker run --volume $(pwd):/home/ bach collect.py --dataset 3 --contestant dale_moss "https://bachelor-nation.fandom.com/wiki/Cassie_Randolph"
-```
-
-Collect data from all contestants from all seasons of The Bachelor/Bachelorette (overwrite ds2.pkl) and source the data from a local location (./data/raw2.json):
-```
-docker run --volume $(pwd):/home/ bach collect.py --dataset 2 --source local
 ```
 
 Collect all available data for data sets 1 and 2 (overwrite ds1.pkl and ds2.pkl):
