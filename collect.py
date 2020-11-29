@@ -120,8 +120,8 @@ def main():
     # Retrieve args
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--dataset', dest='dataset', type=int, nargs='+', default=[1, 2, 3, 4], help='an integer associated with a data set (i.e. 4)')
-    parser.add_argument('--season', dest='season', type=int, nargs='+', default=[], help='an integer season (only applicable with data sources 3 and 4) (i.e. 11)')
-    parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (only applicable with data source 5) (i.e. joelle_fletcher)')
+    parser.add_argument('--season', dest='season', type=int, nargs='+', default=[], help='an integer season (only applicable with data source 2) (i.e. 11)')
+    parser.add_argument('--contestant', dest='contestant', type=str, nargs='+', default=[], help='a string contestant first and last name separated by "_" (only applicable with data sources 3 and 4) (i.e. joelle_fletcher)')
     args = parser.parse_args()
 
     # Initialize multiprocessing pool with 5 threads
@@ -136,6 +136,7 @@ def main():
     df3 = None
     # Data set 1
     if 1 in args.dataset:
+        print('[-] Collecting data set 1')
         # Scrape data set 1
         ds1_data = scrape1()
         df1 = pd.DataFrame(list(ds1_data))
@@ -143,6 +144,7 @@ def main():
         bachmodel.save_df(df1, 1)
     # Data set 2
     if 2 in args.dataset:
+        print('[-] Collecting data set 2')
         seasons = []
         # If season argument is specified, collect only the given seasons
         if len(args.season) > 0:
@@ -175,6 +177,7 @@ def main():
         bachmodel.save_df(df2, 2)
     # Data set 3
     if 3 in args.dataset:
+        print('[-] Collecting data set 3')
         contestants = []
         # If data set 2 hasn't been read-in to a dataframe, attempt to read data set 2 from pickled file
         if not isinstance(df2, pd.DataFrame):
@@ -199,6 +202,7 @@ def main():
         bachmodel.save_df(df3, 3)
     # Data set 4
     if 4 in args.dataset:
+        print('[-] Collecting data set 4')
         contestants_igs = []
         # Initialize instagram api object
         ig = instagram.api(os.path.join(PATH_TO_VOLUME, 'ig.cfg'))
