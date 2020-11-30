@@ -13,7 +13,7 @@ Build the docker container:
 docker build . --tag bach
 ```
 
-Collect all data sets from remote sources:
+Add your Instagram credentials to data/ig.cfg, then collect all data sets from remote sources:
 ```
 docker run --volume $(pwd):/home/ bach collect.py
 ```
@@ -89,6 +89,16 @@ docker build collection/ --tag bach
 * set: Optional. Default: [1,2,3,4]. An integer associated with the desired data set to be collected. This can be a list of integers.
 * season: Optional. Default: all seasons (via data sets 1.1 and 1.2). An integer or list of integers associated with a desired season to collect data on. Only applicable with data set 2.
 * contestant: Optional. Default: all contestants (via data sets 2.1 and 2.2). A case insensitive string or list of case insensitive strings associated with the first and last name separated by a "_" of a contestant from any season of The Bachelor or Bachelorette or the URL of a contestant's profile page on the [Bachelor Nation Fandom Wiki](https://bachelor-nation.fandom.com). Only applicable with data set 3.
+
+#### Instagram (Undocumented) API
+
+To collect data from the undocumented Instagram API for data set 4, Instagram credentials are required. The Instagram API scraper class used by collect.py uses the configparser package to read-in and parse a config file named ig.cfg located in data/. Simply edit the file and save. For example:
+```
+[Instagram]
+username = ilovethebachelor
+password = w!lly0uacc3ptth!sr0s3
+```
+(These are totally not my creds 😬🤥)
 
 #### Examples:
 
