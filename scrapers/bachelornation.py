@@ -133,7 +133,7 @@ def scrape_contestant(contestant):
                     # Clean memory
                     del r
                 except requests.exceptions.ConnectionError:
-                    print('[W] Headshot image not able to be downloaded')
+                    print('  💔 Headshot image not able to be downloaded')
                     img = None
                 # Save base64 encoded image in json record
                 data['photo'] = img

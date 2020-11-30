@@ -138,7 +138,7 @@ def main():
     df3 = None
     # Data set 1
     if 1 in args.dataset:
-        print('[-] Collecting data set 1')
+        print('🌹 Collecting data set 1')
         # Scrape data set 1
         ds1_data = scrape1()
         df1 = pd.DataFrame(list(ds1_data))
@@ -146,7 +146,7 @@ def main():
         bachmodel.save_df(df1, 1)
     # Data set 2
     if 2 in args.dataset:
-        print('[-] Collecting data set 2')
+        print('🌹 Collecting data set 2')
         seasons = []
         # If season argument is specified, collect only the given seasons
         if len(args.season) > 0:
@@ -162,12 +162,12 @@ def main():
                     try:
                         max_season = int(df1[df1['show']==show].max()['season'])
                     except TypeError:
-                        print('  [!] Unable to convert max season value to int')
+                        print('  💔 Unable to convert max season value to int')
                         max_season = 0
                     if max_season > 0:
                         seasons += [(show, season) for season in range(1, max_season+1)]
                     else:
-                        print('  [!] Unable to collect data set 2. Has data set 1 been collected and stored?')
+                        print('  💔 Unable to collect data set 2. Has data set 1 been collected and stored?')
         # Multiprocess
         ds2_resp = pool.starmap_async(scrape2, seasons)
         ds2_data = []
@@ -179,7 +179,7 @@ def main():
         bachmodel.save_df(df2, 2)
     # Data set 3
     if 3 in args.dataset:
-        print('[-] Collecting data set 3')
+        print('🌹 Collecting data set 3')
         contestants = []
         # If data set 2 hasn't been read-in to a dataframe, attempt to read data set 2 from pickled file
         if not isinstance(df2, pd.DataFrame):
@@ -196,7 +196,7 @@ def main():
             else:
                 contestants = df2[['id','profile_url']].values.tolist()
                 if len(contestants) == 0:
-                    print(f'  [!] Unable to collect data set 3. Has data set 2 been collected and stored?')
+                    print(f'  💔 Unable to collect data set 3. Has data set 2 been collected and stored?')
         # Multiprocess
         ds3_resp = pool.starmap_async(scrape3, contestants)
         df3 = pd.DataFrame([rec for rec in list(ds3_resp.get()) if rec != None])
@@ -204,7 +204,7 @@ def main():
         bachmodel.save_df(df3, 3)
     # Data set 4
     if 4 in args.dataset:
-        print('[-] Collecting data set 4')
+        print('🌹 Collecting data set 4')
         contestants_igs = []
         # Initialize instagram api object
         ig = instagram.api(os.path.join(PATH_TO_VOLUME, 'ig.cfg'))
@@ -231,7 +231,7 @@ def main():
                         if 'instagram' in url.lower():
                             contestants_igs.append((ig, contestant[0], url))
                 if len(contestants_igs) == 0:
-                    print(f'  [!] Unable to collect data set 4. Has data set 3 been collected and stored?')
+                    print(f'  💔 Unable to collect data set 4. Has data set 3 been collected and stored?')
         # Multiprocess
         ds4_resp = pool.starmap_async(compile4, contestants_igs)
         df4 = pd.DataFrame([rec for rec in list(ds4_resp.get()) if rec != None])

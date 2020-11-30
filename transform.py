@@ -226,7 +226,7 @@ def process_face(id, name, b64photo):
 		try:
 			img_resized = cv2.resize(img_cropped, dimensions, interpolation=cv2.INTER_AREA)
 		except Exception as e:
-			print(f'  [!] {e}')
+			print(f'  💔 {e}')
 			img_resized = np.array([])
 
 		if img_resized.size > 0:
@@ -305,7 +305,7 @@ def main():
 
 	# If the user wants to preprocess the data
 	if preprocess:
-		print('[-] Preprocessing data for data set 5')
+		print('🌹 Preprocessing data for data set 5')
 		# If no contestants are given by the user, process every contestant from data set 3 in the database
 		if len(args.contestant) == 0:
 			# Read-in ds3 as dataframe
@@ -314,7 +314,7 @@ def main():
 				# Retrieve list of contestants
 				contestants = df3[['id', 'name', 'photo']].values.tolist()
 			if len(contestants) == 0:
-				print(f'  [!] Unable to compile data set 5. Has data set 3 been collected and stored?')
+				print(f'  💔 Unable to compile data set 5. Has data set 3 been collected and stored?')
 		else:
 			# Read-in ds3 as dataframe
 			df3 = bachmodel.retrieve_df(3)
@@ -365,7 +365,7 @@ def main():
 				# Retrieve contestants' ids, name, face, and dlib landmarks
 				contestants = df5[['id', 'name', 'face_photo', 'dlib_landmarks']].values.tolist()
 				if len(contestants) == 0:
-					print(f'  [!] Unable to evaluate rule of thirds. Has data set 5 been collected, preprocessed, and stored?')
+					print(f'  💔 Unable to evaluate rule of thirds. Has data set 5 been collected, preprocessed, and stored?')
 			else:
 				for contestant in args.contestant:
 					names = contestant.lower().split('_')
@@ -374,7 +374,7 @@ def main():
 					contestant = df5.loc[df5['name']==name][['id', 'name', 'face_photo', 'dlib_landmarks']].values.tolist()
 		# Rule of thirds
 		if 'thirds' in args.algorithm:
-			print('[-] Evaluating the Rule of Thirds')
+			print('🌹 Evaluating the Rule of Thirds')
 			# Multiprocess
 			ds5_resp = pool.starmap_async(eval_rule_of_thirds, contestants)
 			# Update data set 5 dataframe
@@ -387,7 +387,7 @@ def main():
 			bachmodel.save_df(df5, 5)
 		# Rule of fifths
 		if 'fifths' in args.algorithm:
-			print('[-] Evaluating the Rule of Fifths')
+			print('🌹 Evaluating the Rule of Fifths')
 			# Multiprocess
 			ds5_resp = pool.starmap_async(eval_rule_of_fifths, contestants)
 			# Update data set 5 dataframe
@@ -400,7 +400,7 @@ def main():
 			bachmodel.save_df(df5, 5)
 		# Golden ratio
 		if 'golden' in args.algorithm:
-			print('[-] Evaluating the Golden Ratio')
+			print('🌹 Evaluating the Golden Ratio')
 			# Multiprocess
 			ds5_resp = pool.starmap_async(eval_golden_ratio, contestants)
 			# Update data set 5 dataframe

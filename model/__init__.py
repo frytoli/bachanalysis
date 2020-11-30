@@ -119,7 +119,7 @@ class bachmodel():
             df.to_pickle(os.path.join(self.localdir, f'ds{ds}.pkl'))
             return True
         except Exception as e:
-            print(f'  [!] {e}')
+            print(f'  💔 {e}')
             return False
 
     def retrieve_df(self, ds):
@@ -127,7 +127,7 @@ class bachmodel():
             df = pd.read_pickle(os.path.join(self.localdir, f'ds{ds}.pkl'))
             return df
         except Exception as e:
-            print(f'  [!] {e}')
+            print(f'  💔 {e}')
             # Return an empty dataframe
             return pd.DataFrame({'A' : []})
 
@@ -250,7 +250,7 @@ class bachmodel():
                     else:
                         modeled_data[key] = value
         else:
-            print('  [!] Only a json object is permitted')
+            print('  💔 Only a json object is permitted')
             return {}
         # If the resulting json object (dict) only contains null values, return an empty dict
         if modeled_data == self.models[ds]:
@@ -273,6 +273,6 @@ class bachmodel():
                 modeled_datas = self.set_place(modeled_datas)
             return modeled_datas
         else:
-            print('  [!] Only a list of json objects are permitted')
+            print('  💔 Only a list of json objects are permitted')
             return []
         return modeled_datas

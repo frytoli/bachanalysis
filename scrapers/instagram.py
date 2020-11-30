@@ -47,12 +47,12 @@ class api():
                 self.csrftoken = cookiejar['csrftoken']
                 self.sessionid = cookiejar['sessionid']
             else:
-                print('  [!] Instagram auth not successful')
+                print('  💔 Instagram auth not successful')
                 self.is_authed = False
                 self.csrftoken = None
                 self.sessionid = None
         else:
-            print('  [!] Instagram auth not successful due to an HTTPError')
+            print('  💔 Instagram auth not successful due to an HTTPError')
             self.is_authed = False
             self.csrftoken = None
             self.sessionid = None
@@ -85,13 +85,13 @@ class api():
                             }
                         )
                 except (ssl.SSLEOFError, requests.exceptions.HTTPError):
-                    print(f'  [!] SSLEOFError or HTTPError prevented retrieving Instagram profile information for {usename}')
+                    print(f'  💔 SSLEOFError or HTTPError prevented retrieving Instagram profile information for {usename}')
                     return {}
             # Ensure that json data was returned
             try:
                 ig_data = r.json()
             except ValueError:
-                print(f'  [!] Response from Instagram for user {usename} could not be converted to json')
+                print(f'  💔 Response from Instagram for user {usename} could not be converted to json')
                 return {}
             # Continue if good http status code response
             if r:
@@ -151,7 +151,7 @@ class api():
                                                 }
                                             )
                                         except Exception as e:
-                                            print(f'  [!] {e}')
+                                            print(f'  💔 {e}')
                                         if r:
                                             photo = f"data:{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
                                         else:
