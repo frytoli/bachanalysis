@@ -139,4 +139,3 @@ cython_debug/
 
 # Local
 *.DS_Store
-data
