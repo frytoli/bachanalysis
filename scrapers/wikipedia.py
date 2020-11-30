@@ -47,18 +47,22 @@ def scrape(show):
             url,
             headers={'User-Agent':select_ua()}
         ).text
-    # Soup-ify the returned source
-    soup = BeautifulSoup(dom, 'html.parser')
-    # Parse out Seasons table
-    table = soup.find('table', class_='wikitable plainrowheaders')
-    # Convert html table to dataframe
-    df = pd.read_html(str(table), header=0)[0]
-    # Rename '#' column to 'Season'
-    df = df.rename(columns={'#': 'Season'})
-    # Add 'Show' column
-    df['Show'] = [show for i in range(len(df.index))]
-    # Convert dataframe to dict
-    raw_data = [record for record in df.to_dict(orient='records')]
-    # Clean Wikipedia references from key-value pairs
-    data = remove_wikipedia_refs(raw_data)
-    return data
+    # If returned status code is good, continue
+    if dom:
+        # Soup-ify the returned source
+        soup = BeautifulSoup(dom.text, 'html.parser')
+        # Parse out Seasons table
+        table = soup.find('table', class_='wikitable plainrowheaders')
+        # Convert html table to dataframe
+        df = pd.read_html(str(table), header=0)[0]
+        # Rename '#' column to 'Season'
+        df = df.rename(columns={'#': 'Season'})
+        # Add 'Show' column
+        df['Show'] = [show for i in range(len(df.index))]
+        # Convert dataframe to dict
+        raw_data = [record for record in df.to_dict(orient='records')]
+        # Clean Wikipedia references from key-value pairs
+        data = remove_wikipedia_refs(raw_data)
+        return data
+    else:
+        return {}

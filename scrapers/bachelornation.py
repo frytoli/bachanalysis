@@ -33,64 +33,66 @@ def scrape_season(show, season):
     dom = requests.get(
             url,
             headers={'User-Agent':select_ua()}
-        ).text
-    # Soup-ify the returned source
-    soup = BeautifulSoup(dom, 'html.parser')
+        )
+    # If returned status code if good, continue
+    if dom:
+        # Soup-ify the returned source
+        soup = BeautifulSoup(dom.text, 'html.parser')
 
-    # Check that there is contents on the page
-    alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
-    if alert_div:
-        print(f'No contents on page for {season}. Skipping.')
-    else:
-        # Define list of known keys
-        keys = ['name', 'age', 'hometown', 'occupation', 'eliminated']
-        # Check for gallery style (common with newer season pages)
-        gallery_items = soup.findAll('div', class_='wikia-gallery-item')
-        if len(gallery_items) > 20:
-            # Iterate over gallery items and save info
-            for item in gallery_items:
-                caption = item.find('div', class_='lightbox-caption')
-                if caption:
-                    name = caption.find('a')
-                    if name:
-                        profile_url = f'''https://bachelor-nation.fandom.com{name['href']}'''
-                        values = re.split(r'<br\/{0,1}>', str(caption))
-                        if len(values) == 5:
-                            # Compile html tag removal regex pattern
-                            tag_pattern = re.compile(r'</{0,1}[a-z]{1,5}>')
-                            contestants.append({
-                                keys[0]: tag_pattern.sub('', name.text),
-                                keys[1]: int(tag_pattern.sub('', values[1].strip())),
-                                keys[2]: tag_pattern.sub('', values[2].strip()),
-                                keys[3]: tag_pattern.sub('', values[3].strip()),
-                                keys[4]: tag_pattern.sub('', values[4].strip()),
-                                'profile_url': tag_pattern.sub('', profile_url),
-                                'season': season,
-                                'show': show
-                            })
-            return contestants
-        # Else, check for table style (commone with older season pages)
+        # Check that there is contents on the page
+        alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
+        if alert_div:
+            print(f'No contents on page for {season}. Skipping.')
         else:
-            article_tables = soup.findAll('table', class_='article-table')
-            if len(article_tables) > 0:
-                # Iterate over tables and check headers
-                for table in article_tables:
-                    # Convert html table to dataframe
-                    df = pd.read_html(str(table), header=0)[0]
-                    # Check if column headers are expected
-                    if [col.strip().lower() for col in list(df.columns)] == keys:
-                        # We have confirmed we have the correct table of contestants
-                        # Normalized column names
-                        df = df.rename(columns={col: col.strip().lower() for col in df.columns})
-                        # Add profile_url column
-                        df['profile_url'] = [f'''https://bachelor-nation.fandom.com{a['href']}''' for a in table.findAll('a')]
-                        # Add season column
-                        df['season'] = [season for i in range(len(df.index))]
-                        # Add show column
-                        df['show'] = [show for i in range(len(df.index))]
-                        # Convert dataframe to dict
-                        contestants = [record for record in df.to_dict(orient='records')]
-                        return contestants
+            # Define list of known keys
+            keys = ['name', 'age', 'hometown', 'occupation', 'eliminated']
+            # Check for gallery style (common with newer season pages)
+            gallery_items = soup.findAll('div', class_='wikia-gallery-item')
+            if len(gallery_items) > 20:
+                # Iterate over gallery items and save info
+                for item in gallery_items:
+                    caption = item.find('div', class_='lightbox-caption')
+                    if caption:
+                        name = caption.find('a')
+                        if name:
+                            profile_url = f'''https://bachelor-nation.fandom.com{name['href']}'''
+                            values = re.split(r'<br\/{0,1}>', str(caption))
+                            if len(values) == 5:
+                                # Compile html tag removal regex pattern
+                                tag_pattern = re.compile(r'</{0,1}[a-z]{1,5}>')
+                                contestants.append({
+                                    keys[0]: tag_pattern.sub('', name.text),
+                                    keys[1]: int(tag_pattern.sub('', values[1].strip())),
+                                    keys[2]: tag_pattern.sub('', values[2].strip()),
+                                    keys[3]: tag_pattern.sub('', values[3].strip()),
+                                    keys[4]: tag_pattern.sub('', values[4].strip()),
+                                    'profile_url': tag_pattern.sub('', profile_url),
+                                    'season': season,
+                                    'show': show
+                                })
+                return contestants
+            # Else, check for table style (commone with older season pages)
+            else:
+                article_tables = soup.findAll('table', class_='article-table')
+                if len(article_tables) > 0:
+                    # Iterate over tables and check headers
+                    for table in article_tables:
+                        # Convert html table to dataframe
+                        df = pd.read_html(str(table), header=0)[0]
+                        # Check if column headers are expected
+                        if [col.strip().lower() for col in list(df.columns)] == keys:
+                            # We have confirmed we have the correct table of contestants
+                            # Normalized column names
+                            df = df.rename(columns={col: col.strip().lower() for col in df.columns})
+                            # Add profile_url column
+                            df['profile_url'] = [f'''https://bachelor-nation.fandom.com{a['href']}''' for a in table.findAll('a')]
+                            # Add season column
+                            df['season'] = [season for i in range(len(df.index))]
+                            # Add show column
+                            df['show'] = [show for i in range(len(df.index))]
+                            # Convert dataframe to dict
+                            contestants = [record for record in df.to_dict(orient='records')]
+                            return contestants
     return contestants
 
 def scrape_contestant(contestant):
@@ -106,50 +108,56 @@ def scrape_contestant(contestant):
             contestant,
             headers={'User-Agent':select_ua()}
         ).text
-    # Soup-ify the returned source
-    soup = BeautifulSoup(dom, 'html.parser')
+    # If returned status code if good, continue
+    if dom:
+        # Soup-ify the returned source
+        soup = BeautifulSoup(dom.text, 'html.parser')
 
-    # Check that there is contents on the page
-    alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
-    if alert_div:
-        print(f'No contents on page for {contestant}. Skipping.')
-    else:
-        # Parse out headshot
-        headshot = soup.find('img', class_='pi-image-thumbnail')
-        headshot_b64 = None
-        if headshot:
-            headshot_src = headshot['src']
-            # Download image in temp file
-            r = requests.get(
-                headshot_src,
-                headers={'User-Agent':select_ua()}
-            )
-            img = f"data:{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
-            # Clean memory
-            del r
-            # Save base64 encoded image in json record
-            data['photo'] = img
-        # Parse out additional categorized info
-        infos = soup.findAll('div', class_='pi-item pi-data pi-item-spacing pi-border-color')
-        for pair in infos:
-            key = pair.find('h3').text.strip()
-            value = pair.find('div')
-            # If key is social_media, retrieve and save all social media links as list
-            if key.lower() == 'social media':
-                value = [a['href'] for a in value.findAll('a')]
-                #value = f'''{', '.join([a['href'] for a in value.findAll('a')])}'''
-            # Otherwise, save the text
-            else:
-                value = value.text
-            data[key] = value
-        # Attempt to find height information included in wiki content
-        content = soup.find('div', id='content')
-        ps = content.findAll('p')
-        for p in ps:
-            b = p.find('b')
-            i = p.find('i')
-            if b and b.text.strip().lower() == 'height':
-                data['height'] = p.text.lower().replace(b.text.strip().lower(),'').strip()
-                if i:
-                    data['height'] = data['height'].replace(i.text.strip().lower(),'')
+        # Check that there is contents on the page
+        alert_div = soup.find('div', class_='noarticletext mw-content-ltr')
+        if alert_div:
+            print(f'No contents on page for {contestant}. Skipping.')
+        else:
+            # Parse out headshot
+            headshot = soup.find('img', class_='pi-image-thumbnail')
+            headshot_b64 = None
+            if headshot:
+                headshot_src = headshot['src']
+                # Download image in temp file
+                try:
+                    r = requests.get(
+                        headshot_src,
+                        headers={'User-Agent':select_ua()}
+                    )
+                    img = f"data:{r.headers['Content-Type']};base64,{base64.b64encode(r.content).decode('utf-8')}"
+                    # Clean memory
+                    del r
+                except requests.exceptions.ConnectionError:
+                    print('[W] Headshot image not able to be downloaded')
+                    img = None
+                # Save base64 encoded image in json record
+                data['photo'] = img
+            # Parse out additional categorized info
+            infos = soup.findAll('div', class_='pi-item pi-data pi-item-spacing pi-border-color')
+            for pair in infos:
+                key = pair.find('h3').text.strip()
+                value = pair.find('div')
+                # If key is social_media, retrieve and save all social media links as list
+                if key.lower() == 'social media':
+                    value = [a['href'] for a in value.findAll('a')]
+                    #value = f'''{', '.join([a['href'] for a in value.findAll('a')])}'''
+                # Otherwise, save the text
+                else:
+                    value = value.text
+                data[key] = value
+            # Attempt to find height information included in wiki content
+            content = soup.find('div', id='content')
+            ps = content.findAll('p')
+            for p in ps:
+                b = p.find('b')
+                i = p.find('i')
+                if b and b.text.strip().lower() == 'height':
+                    data['height'] = p.text.lower().replace(b.text.strip().lower(),'').strip()
+                    if i:
+                        data['height'] = data['height'].replace(i.text.strip().lower(),'')
     return data
