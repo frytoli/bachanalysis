@@ -96,7 +96,7 @@ To collect data from the undocumented Instagram API for data set 4, Instagram cr
 ```
 [Instagram]
 username = ilovethebachelor
-password = w!lly0uacc3ptth!sr0s3
+password = willyouacceptthisrose?
 ```
 (These are totally not my creds 😬🤥)
 
@@ -252,9 +252,9 @@ To-do
 
 ### Analysis and Conclusions
 
-- [ ] Output data to file
-- [ ] Analyze data and draw conclusions
-  - [ ] How should I handle missing data?
+- [x] Output data to file
+- [x] Analyze data and draw conclusions
+  - [x] How should I handle missing data?
 
 ## References
 
