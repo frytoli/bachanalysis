@@ -1,4 +1,4 @@
-# The Bachelor/Bachelorette Contestant Feature Analysis
+# 🌹 The Bachelor/Bachelorette Contestant Feature Analysis 🌹
 
 ![](https://media0.giphy.com/media/6wk5cC8J7ZEe8RR75e/giphy.gif)
 
