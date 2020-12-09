@@ -28,7 +28,10 @@ Perform analysis with Jupyter:
 jupyter notebook analysis/bachanalysis.ipynb
 ```
 
-In conclusion, analysis showed that (1) no correlation exists between facial attractiveness and place, (2) no correlation exists between Instagram popularity/engagement and place, and (3) slight correlation exists between facial attractiveness and Instagram popularity/engagement.
+In conclusion, analysis showed:
+1. No correlation between facial attractiveness and place exists
+2. No correlation between Instagram popularity/engagement and place exists
+3. Slight correlation between facial attractiveness and Instagram popularity/engagement exists
 
 ## Data sets:
 
