@@ -4,7 +4,7 @@
 
 DSCI-510 Final Project
 
-Compare the features and place (the number of episodes the contestant was on the show for) of past contestants of ABC's The Bachelor and The Bachelorette.
+Compare the facial attractiveness, place (evaluated from week of elimination), and Instagram popularity/engagement of past contestants of ABC's The Bachelor and The Bachelorette.
 
 ## TLDR
 
@@ -23,10 +23,12 @@ Transform/preprocess data for data set 5 and perform evaluations with all algori
 docker run --volume $(pwd):/home/ bach transform.py
 ```
 
-Review analysis with Jupyter:
+Perform analysis with Jupyter:
 ```
 jupyter notebook analysis/bachanalysis.ipynb
 ```
+
+In conclusion, analysis showed that (1) no correlation exists between facial attractiveness and place, (2) no correlation exists between Instagram popularity/engagement and place, and (3) slight correlation exists between facial attractiveness and Instagram popularity/engagement.
 
 ## Data sets:
 
